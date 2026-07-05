@@ -51,7 +51,7 @@ public class EmployeeProfileController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('SYSTEM_ADMINISTRATOR','HR_SPECIALIST','DEPARTMENT_HEAD')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMINISTRATOR','HR_SPECIALIST','DEPARTMENT_HEAD','TEAM_LEAD_MANAGER')")
     @Operation(summary = "Get all employee profiles (org-wide skill inventory)")
     public ResponseEntity<ApiResponse<List<EmployeeProfileResponse>>> getAll() {
         return ResponseEntity.ok(ApiResponse.success("Profiles fetched", employeeProfileService.getAllProfiles()));

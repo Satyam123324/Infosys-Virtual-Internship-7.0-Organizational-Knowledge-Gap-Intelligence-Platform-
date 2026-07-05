@@ -98,7 +98,6 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<EmployeeSkillResponse> getMySkills(String email) {
         EmployeeProfile profile = getOrCreateProfileEntity(email);
         return employeeSkillRepository.findByEmployeeProfileId(profile.getId()).stream()
@@ -128,7 +127,6 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<CertificationResponse> getMyCertifications(String email) {
         EmployeeProfile profile = getOrCreateProfileEntity(email);
         return certificationRepository.findByEmployeeProfileId(profile.getId()).stream()
@@ -163,7 +161,6 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<WorkExperienceResponse> getMyWorkExperience(String email) {
         EmployeeProfile profile = getOrCreateProfileEntity(email);
         return workExperienceRepository.findByEmployeeProfileId(profile.getId()).stream()
