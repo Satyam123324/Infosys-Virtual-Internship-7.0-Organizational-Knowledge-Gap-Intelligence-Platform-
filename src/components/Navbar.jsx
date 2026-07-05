@@ -22,6 +22,7 @@ export default function Navbar() {
       <div className="navbar-links">
         <Link to="/dashboard">Dashboard</Link>
         <Link to="/skills">My Skills</Link>
+        <Link to="/assessment">Assessment Test</Link>
         {isAdmin && <Link to="/admin">Admin Console</Link>}
         <span style={{ fontSize: 13, color: '#6b7280' }}>{user.fullName}</span>
         <button className="logout-btn" onClick={handleLogout}>Logout</button>

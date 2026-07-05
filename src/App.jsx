@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import AdminConsole from './pages/AdminConsole';
 import SkillInventory from './pages/SkillInventory';
+import AssessmentTest from './pages/AssessmentTest';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -34,6 +35,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <SkillInventory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assessment"
+            element={
+              <ProtectedRoute>
+                <AssessmentTest />
               </ProtectedRoute>
             }
           />

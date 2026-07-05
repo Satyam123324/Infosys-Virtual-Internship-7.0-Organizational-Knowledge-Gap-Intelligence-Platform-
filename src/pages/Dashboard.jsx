@@ -1,61 +1,57 @@
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import EmployeeView from '../components/dashboards/EmployeeView';
+import ManagerView from '../components/dashboards/ManagerView';
+import AdminHRView from '../components/dashboards/AdminHRView';
 
-const ROLE_LABELS = {
-  EMPLOYEE: 'Employee',
-  TEAM_LEAD_MANAGER: 'Team Lead / Manager',
-  HR_SPECIALIST: 'HR Specialist',
-  DEPARTMENT_HEAD: 'Department Head',
-  LEARNING_DEVELOPMENT_ADMIN: 'Learning & Development Admin',
-  SYSTEM_ADMINISTRATOR: 'System Administrator',
+const DASHBOARD_LABELS = {
+  SYSTEM_ADMINISTRATOR: 'System Administrator Dashboard',
+  HR_SPECIALIST: 'HR Analytics Dashboard',
+  LEARNING_DEVELOPMENT_ADMIN: 'Learning & Development Dashboard',
+  DEPARTMENT_HEAD: 'Department Head Dashboard',
+  TEAM_LEAD_MANAGER: 'Team Manager Dashboard',
+  EMPLOYEE: 'My Dashboard',
 };
+
+// Priority order — highest-privilege role determines which dashboard view renders
+const ROLE_PRIORITY = [
+  'SYSTEM_ADMINISTRATOR',
+  'HR_SPECIALIST',
+  'LEARNING_DEVELOPMENT_ADMIN',
+  'DEPARTMENT_HEAD',
+  'TEAM_LEAD_MANAGER',
+  'EMPLOYEE',
+];
 
 export default function Dashboard() {
   const { user } = useAuth();
-
   if (!user) return null;
+
+  const primaryRole = ROLE_PRIORITY.find((r) => user.roles?.includes(r)) || 'EMPLOYEE';
+
+  const renderView = () => {
+    switch (primaryRole) {
+      case 'SYSTEM_ADMINISTRATOR':
+      case 'HR_SPECIALIST':
+      case 'LEARNING_DEVELOPMENT_ADMIN':
+        return <AdminHRView />;
+      case 'DEPARTMENT_HEAD':
+      case 'TEAM_LEAD_MANAGER':
+        return <ManagerView user={user} />;
+      default:
+        return <EmployeeView user={user} />;
+    }
+  };
 
   return (
     <div className="app-shell">
       <Navbar />
       <div className="page-content">
         <div className="page-header">
-          <h1>Welcome, {user.fullName.split(' ')[0]} 👋</h1>
-          <p>Here's your profile overview on the Knowledge Gap Intelligence Platform</p>
+          <h1>{DASHBOARD_LABELS[primaryRole]}</h1>
+          <p>Welcome back, {user.fullName.split(' ')[0]} — here's your view of the platform</p>
         </div>
-
-        <div className="card-grid">
-          <div className="info-card">
-            <div className="label">Full Name</div>
-            <div className="value">{user.fullName}</div>
-          </div>
-          <div className="info-card">
-            <div className="label">Email</div>
-            <div className="value">{user.email}</div>
-          </div>
-          <div className="info-card">
-            <div className="label">Department</div>
-            <div className="value">{user.department || '—'}</div>
-          </div>
-          <div className="info-card">
-            <div className="label">Designation</div>
-            <div className="value">{user.designation || '—'}</div>
-          </div>
-        </div>
-
-        <div className="section-title">Assigned Roles</div>
-        <div>
-          {user.roles?.map((role) => (
-            <span key={role} className="role-badge">{ROLE_LABELS[role] || role}</span>
-          ))}
-        </div>
-
-        <div className="section-title">What's Next</div>
-        <div className="info-card" style={{ color: '#6b7280', fontSize: 14, lineHeight: 1.6 }}>
-          This is Module 1 — Authentication & Role-Based Access. Upcoming modules will add
-          your Skill Inventory, Knowledge Gap Analysis, Training Recommendations, and
-          Analytics Dashboards right here.
-        </div>
+        {renderView()}
       </div>
     </div>
   );
