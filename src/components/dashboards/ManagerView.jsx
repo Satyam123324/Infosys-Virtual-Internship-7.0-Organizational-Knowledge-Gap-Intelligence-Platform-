@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Users2, Building2, ListChecks, BarChart3 } from 'lucide-react';
 import { employeeApi } from '../../api/employeeApi';
 
 export default function ManagerView({ user }) {
-  const [myDeptId, setMyDeptId] = useState(null);
   const [deptName, setDeptName] = useState('');
   const [teamProfiles, setTeamProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,11 +15,6 @@ export default function ManagerView({ user }) {
         const departmentId = meRes.data.data.departmentId;
         setDeptName(meRes.data.data.departmentName || 'Unassigned');
 
-        if (departmentId) {
-          setMyDeptId(departmentId);
-        }
-
-        // Fall back to org-wide view if manager has no department assigned yet
         const allRes = await employeeApi.getAllProfiles().catch(() => null);
         if (allRes) {
           const filtered = departmentId
@@ -40,22 +35,32 @@ export default function ManagerView({ user }) {
 
   return (
     <>
+      <div className="hero-card">
+        <div className="hero-eyebrow">Team Overview</div>
+        <div className="hero-title">{deptName}</div>
+        <div className="hero-sub">{loading ? 'Loading team data...' : `${teamProfiles.length} team members tracked`}</div>
+      </div>
+
       <div className="card-grid">
-        <div className="info-card">
-          <div className="label">My Department</div>
-          <div className="value">{deptName}</div>
+        <div className="stat-card">
+          <div className="stat-icon slate"><Building2 size={17} /></div>
+          <div className="stat-label">My Department</div>
+          <div className="stat-value" style={{ fontSize: 18 }}>{deptName}</div>
         </div>
-        <div className="info-card">
-          <div className="label">Team Size</div>
-          <div className="value">{loading ? '—' : teamProfiles.length}</div>
+        <div className="stat-card">
+          <div className="stat-icon teal"><Users2 size={17} /></div>
+          <div className="stat-label">Team Size</div>
+          <div className="stat-value">{loading ? '—' : teamProfiles.length}</div>
         </div>
-        <div className="info-card">
-          <div className="label">Total Skills Logged</div>
-          <div className="value">{loading ? '—' : totalSkillsInTeam}</div>
+        <div className="stat-card">
+          <div className="stat-icon amber"><ListChecks size={17} /></div>
+          <div className="stat-label">Total Skills Logged</div>
+          <div className="stat-value">{loading ? '—' : totalSkillsInTeam}</div>
         </div>
-        <div className="info-card">
-          <div className="label">Avg Skills / Person</div>
-          <div className="value">{loading ? '—' : avgSkillsPerPerson}</div>
+        <div className="stat-card">
+          <div className="stat-icon teal"><BarChart3 size={17} /></div>
+          <div className="stat-label">Avg Skills / Person</div>
+          <div className="stat-value">{loading ? '—' : avgSkillsPerPerson}</div>
         </div>
       </div>
 
@@ -65,7 +70,7 @@ export default function ManagerView({ user }) {
       {loading ? (
         <div className="loading-text">Loading team data...</div>
       ) : teamProfiles.length === 0 ? (
-        <div className="info-card" style={{ color: '#6b7280' }}>
+        <div className="info-card" style={{ color: '#64748b' }}>
           No team members found in your department yet.
         </div>
       ) : (

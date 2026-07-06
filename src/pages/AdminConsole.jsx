@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
-import Navbar from '../components/Navbar';
+import Layout from '../components/Layout';
 
 const ALL_ROLES = [
   'EMPLOYEE',
@@ -75,15 +75,8 @@ export default function AdminConsole() {
   };
 
   return (
-    <div className="app-shell">
-      <Navbar />
-      <div className="page-content">
-        <div className="page-header">
-          <h1>Admin Console</h1>
-          <p>Manage platform users and role assignments</p>
-        </div>
-
-        {error && <div className="alert alert-error">{error}</div>}
+    <Layout title="Admin Console" subtitle="Manage platform users and role assignments">
+      {error && <div className="alert alert-error">{error}</div>}
 
         {loading ? (
           <div className="loading-text">Loading users...</div>
@@ -151,7 +144,6 @@ export default function AdminConsole() {
             </tbody>
           </table>
         )}
-      </div>
-    </div>
+    </Layout>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
+import Layout from '../components/Layout';
 import { employeeApi } from '../api/employeeApi';
 import { assessmentApi } from '../api/assessmentApi';
 
@@ -95,15 +95,8 @@ export default function AssessmentTest() {
   };
 
   return (
-    <div className="app-shell">
-      <Navbar />
-      <div className="page-content">
-        <div className="page-header">
-          <h1>Skill Assessment Test</h1>
-          <p>Take a short quiz to auto-verify your proficiency — your skill inventory updates automatically</p>
-        </div>
-
-        {error && <div className="alert alert-error">{error}</div>}
+    <Layout title="Skill Assessment Test" subtitle="Take a short quiz to auto-verify your proficiency — your skill inventory updates automatically">
+      {error && <div className="alert alert-error">{error}</div>}
 
         <div className="info-card" style={{ marginBottom: 24 }}>
           <div className="form-group" style={{ marginBottom: 0, maxWidth: 320 }}>
@@ -152,6 +145,21 @@ export default function AssessmentTest() {
                 <div style={{ fontWeight: 600, marginBottom: 12 }}>
                   {idx + 1}. {q.questionText}
                 </div>
+                {q.codeSnippet && (
+                  <pre style={{
+                    background: '#1e1e2e',
+                    color: '#e2e8f0',
+                    padding: '14px 16px',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    overflowX: 'auto',
+                    marginBottom: 12,
+                    fontFamily: 'Consolas, Monaco, monospace',
+                    lineHeight: 1.5,
+                  }}>
+                    <code>{q.codeSnippet}</code>
+                  </pre>
+                )}
                 {q.options.map((opt, optIdx) => (
                   <label
                     key={optIdx}
@@ -212,7 +220,6 @@ export default function AssessmentTest() {
             </tbody>
           </table>
         )}
-      </div>
-    </div>
+    </Layout>
   );
 }

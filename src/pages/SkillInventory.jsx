@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
+import Layout from '../components/Layout';
 import { employeeApi } from '../api/employeeApi';
 
 const LEVELS = ['UNAWARE', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
@@ -62,15 +62,8 @@ export default function SkillInventory() {
   const availableToAdd = allSkills.filter((s) => !myCatalogSkillIds.has(s.id));
 
   return (
-    <div className="app-shell">
-      <Navbar />
-      <div className="page-content">
-        <div className="page-header">
-          <h1>My Skill Inventory</h1>
-          <p>Self-assess your proficiency across the organization's skill catalog</p>
-        </div>
-
-        {error && <div className="alert alert-error">{error}</div>}
+    <Layout title="My Skill Inventory" subtitle="Self-assess your proficiency across the organization's skill catalog">
+      {error && <div className="alert alert-error">{error}</div>}
 
         <div className="info-card" style={{ marginBottom: 24 }}>
           <div className="section-title" style={{ marginTop: 0 }}>Add a skill</div>
@@ -129,7 +122,6 @@ export default function SkillInventory() {
             </tbody>
           </table>
         )}
-      </div>
-    </div>
+    </Layout>
   );
 }

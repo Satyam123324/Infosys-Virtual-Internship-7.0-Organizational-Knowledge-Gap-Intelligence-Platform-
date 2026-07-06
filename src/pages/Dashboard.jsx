@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
+import Layout from '../components/Layout';
 import EmployeeView from '../components/dashboards/EmployeeView';
 import ManagerView from '../components/dashboards/ManagerView';
 import AdminHRView from '../components/dashboards/AdminHRView';
@@ -13,7 +13,6 @@ const DASHBOARD_LABELS = {
   EMPLOYEE: 'My Dashboard',
 };
 
-// Priority order — highest-privilege role determines which dashboard view renders
 const ROLE_PRIORITY = [
   'SYSTEM_ADMINISTRATOR',
   'HR_SPECIALIST',
@@ -44,15 +43,8 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="app-shell">
-      <Navbar />
-      <div className="page-content">
-        <div className="page-header">
-          <h1>{DASHBOARD_LABELS[primaryRole]}</h1>
-          <p>Welcome back, {user.fullName.split(' ')[0]} — here's your view of the platform</p>
-        </div>
-        {renderView()}
-      </div>
-    </div>
+    <Layout title={DASHBOARD_LABELS[primaryRole]} subtitle={`Welcome back, ${user.fullName.split(' ')[0]} — here's your view of the platform`}>
+      {renderView()}
+    </Layout>
   );
 }
