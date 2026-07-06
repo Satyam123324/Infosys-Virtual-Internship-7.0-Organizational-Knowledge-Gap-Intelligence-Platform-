@@ -22,6 +22,9 @@ public class AssessmentQuestion {
     @Column(nullable = false, length = 500)
     private String questionText;
 
+    @Column(length = 3000)
+    private String codeSnippet;
+
     @ElementCollection
     @CollectionTable(name = "assessment_question_options", joinColumns = @JoinColumn(name = "question_id"))
     @Column(name = "option_text")

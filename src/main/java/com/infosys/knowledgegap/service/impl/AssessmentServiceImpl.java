@@ -40,6 +40,7 @@ public class AssessmentServiceImpl implements AssessmentService {
         return questions.stream().map(q -> AssessmentQuestionDto.builder()
                 .id(q.getId())
                 .questionText(q.getQuestionText())
+                .codeSnippet(q.getCodeSnippet())
                 .options(q.getOptions())
                 .build()).collect(Collectors.toList());
     }
