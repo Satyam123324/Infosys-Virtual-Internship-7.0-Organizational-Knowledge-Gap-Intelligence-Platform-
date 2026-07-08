@@ -7,6 +7,9 @@ import Dashboard from './pages/Dashboard';
 import AdminConsole from './pages/AdminConsole';
 import SkillInventory from './pages/SkillInventory';
 import AssessmentTest from './pages/AssessmentTest';
+import GapAnalysis from './pages/GapAnalysis';
+import AdminGapDashboard from './pages/AdminGapDashboard';
+import CompetencyFrameworks from './pages/CompetencyFrameworks';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -43,6 +46,30 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <AssessmentTest />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gap-analysis"
+            element={
+              <ProtectedRoute>
+                <GapAnalysis />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/gap-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMINISTRATOR', 'HR_SPECIALIST']}>
+                <AdminGapDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/competency-frameworks"
+            element={
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMINISTRATOR', 'HR_SPECIALIST', 'LEARNING_DEVELOPMENT_ADMIN']}>
+                <CompetencyFrameworks />
               </ProtectedRoute>
             }
           />

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain } from 'lucide-react';
+import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
@@ -9,6 +9,10 @@ export default function Sidebar() {
   if (!user) return null;
 
   const isAdmin = user.roles?.includes('SYSTEM_ADMINISTRATOR');
+  const canSeeOrgGaps = user.roles?.some((r) => ['SYSTEM_ADMINISTRATOR', 'HR_SPECIALIST'].includes(r));
+  const canManageFrameworks = user.roles?.some((r) =>
+    ['SYSTEM_ADMINISTRATOR', 'HR_SPECIALIST', 'LEARNING_DEVELOPMENT_ADMIN'].includes(r));
+
   const initials = user.fullName
     .split(' ')
     .map((n) => n[0])
@@ -40,13 +44,28 @@ export default function Sidebar() {
       <NavLink to="/assessment" className={linkClass}>
         <ClipboardCheck size={17} /> Assessment Test
       </NavLink>
+      <NavLink to="/gap-analysis" className={linkClass}>
+        <Radar size={17} /> My Gap Analysis
+      </NavLink>
 
-      {isAdmin && (
+      {(canSeeOrgGaps || canManageFrameworks || isAdmin) && (
         <>
           <div className="nav-group-label">Administration</div>
-          <NavLink to="/admin" className={linkClass}>
-            <ShieldCheck size={17} /> Admin Console
-          </NavLink>
+          {canSeeOrgGaps && (
+            <NavLink to="/admin/gap-dashboard" className={linkClass}>
+              <Radar size={17} /> Org Gap Dashboard
+            </NavLink>
+          )}
+          {canManageFrameworks && (
+            <NavLink to="/admin/competency-frameworks" className={linkClass}>
+              <Layers size={17} /> Competency Frameworks
+            </NavLink>
+          )}
+          {isAdmin && (
+            <NavLink to="/admin" className={linkClass}>
+              <ShieldCheck size={17} /> Admin Console
+            </NavLink>
+          )}
         </>
       )}
 
