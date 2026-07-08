@@ -1,13 +1,18 @@
 package com.infosys.knowledgegap.config;
 
 import com.infosys.knowledgegap.entity.AssessmentQuestion;
+import com.infosys.knowledgegap.entity.CompetencyRequirement;
 import com.infosys.knowledgegap.entity.Department;
 import com.infosys.knowledgegap.entity.Role;
+import com.infosys.knowledgegap.entity.RoleCompetencyFramework;
 import com.infosys.knowledgegap.entity.Skill;
 import com.infosys.knowledgegap.entity.SkillCategory;
+import com.infosys.knowledgegap.enums.ProficiencyLevel;
 import com.infosys.knowledgegap.enums.RoleType;
 import com.infosys.knowledgegap.repository.AssessmentQuestionRepository;
+import com.infosys.knowledgegap.repository.CompetencyRequirementRepository;
 import com.infosys.knowledgegap.repository.DepartmentRepository;
+import com.infosys.knowledgegap.repository.RoleCompetencyFrameworkRepository;
 import com.infosys.knowledgegap.repository.RoleRepository;
 import com.infosys.knowledgegap.repository.SkillCategoryRepository;
 import com.infosys.knowledgegap.repository.SkillRepository;
@@ -27,6 +32,8 @@ public class DataSeeder implements CommandLineRunner {
     private final SkillCategoryRepository skillCategoryRepository;
     private final SkillRepository skillRepository;
     private final AssessmentQuestionRepository assessmentQuestionRepository;
+    private final RoleCompetencyFrameworkRepository frameworkRepository;
+    private final CompetencyRequirementRepository requirementRepository;
 
     @Override
     public void run(String... args) {
@@ -34,6 +41,7 @@ public class DataSeeder implements CommandLineRunner {
         seedDepartments();
         seedSkills();
         seedAssessmentQuestions();
+        seedCompetencyFrameworks();
     }
 
     private void seedRoles() {
@@ -549,5 +557,89 @@ public class DataSeeder implements CommandLineRunner {
                     .difficultyWeight(1)
                     .build());
         }
+    }
+
+    /**
+     * Seeds a handful of realistic role competency frameworks so Gap Analysis has
+     * real data to compare against immediately. To see your own gap report, set your
+     * Employee Profile's "Current Role Title" to exactly match one of these seeded
+     * role titles (e.g. "Software Developer") via PUT /api/v1/employee-profile/me.
+     */
+    private void seedCompetencyFrameworks() {
+        seedFramework("Software Developer", Map.of(
+                "Java", ProficiencyLevel.ADVANCED,
+                "SQL", ProficiencyLevel.INTERMEDIATE,
+                "Git", ProficiencyLevel.INTERMEDIATE,
+                "Spring Boot", ProficiencyLevel.INTERMEDIATE,
+                "Problem Solving", ProficiencyLevel.ADVANCED
+        ));
+
+        seedFramework("Senior Software Developer", Map.of(
+                "Java", ProficiencyLevel.EXPERT,
+                "Spring Boot", ProficiencyLevel.ADVANCED,
+                "SQL", ProficiencyLevel.ADVANCED,
+                "Docker", ProficiencyLevel.INTERMEDIATE,
+                "CI/CD", ProficiencyLevel.INTERMEDIATE,
+                "Leadership", ProficiencyLevel.INTERMEDIATE
+        ));
+
+        seedFramework("Frontend Developer", Map.of(
+                "JavaScript", ProficiencyLevel.ADVANCED,
+                "React", ProficiencyLevel.ADVANCED,
+                "Git", ProficiencyLevel.INTERMEDIATE,
+                "Problem Solving", ProficiencyLevel.INTERMEDIATE
+        ));
+
+        seedFramework("DevOps Engineer", Map.of(
+                "Docker", ProficiencyLevel.ADVANCED,
+                "Kubernetes", ProficiencyLevel.ADVANCED,
+                "AWS", ProficiencyLevel.ADVANCED,
+                "CI/CD", ProficiencyLevel.ADVANCED,
+                "Linux", ProficiencyLevel.ADVANCED
+        ));
+
+        seedFramework("Data Analyst", Map.of(
+                "SQL", ProficiencyLevel.ADVANCED,
+                "Python", ProficiencyLevel.INTERMEDIATE,
+                "Problem Solving", ProficiencyLevel.ADVANCED,
+                "Communication", ProficiencyLevel.INTERMEDIATE
+        ));
+
+        seedFramework("HR Specialist", Map.of(
+                "Communication", ProficiencyLevel.ADVANCED,
+                "Leadership", ProficiencyLevel.INTERMEDIATE,
+                "Problem Solving", ProficiencyLevel.INTERMEDIATE,
+                "Teamwork", ProficiencyLevel.ADVANCED
+        ));
+
+        seedFramework("Team Lead", Map.of(
+                "Leadership", ProficiencyLevel.ADVANCED,
+                "Communication", ProficiencyLevel.ADVANCED,
+                "Problem Solving", ProficiencyLevel.ADVANCED,
+                "Teamwork", ProficiencyLevel.ADVANCED,
+                "Java", ProficiencyLevel.INTERMEDIATE
+        ));
+    }
+
+    private void seedFramework(String roleTitle, Map<String, ProficiencyLevel> skillRequirements) {
+        if (frameworkRepository.findByRoleTitleAndCurrentTrue(roleTitle).isPresent()) return;
+
+        RoleCompetencyFramework framework = frameworkRepository.save(
+                RoleCompetencyFramework.builder()
+                        .roleTitle(roleTitle)
+                        .version("v1")
+                        .current(true)
+                        .build());
+
+        skillRequirements.forEach((skillName, requiredLevel) -> {
+            Skill skill = skillRepository.findByName(skillName).orElse(null);
+            if (skill == null) return;
+            requirementRepository.save(CompetencyRequirement.builder()
+                    .framework(framework)
+                    .skill(skill)
+                    .requiredLevel(requiredLevel)
+                    .mandatory(true)
+                    .build());
+        });
     }
 }
