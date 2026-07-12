@@ -6,6 +6,7 @@ import java.util.List;
 public interface EmployeeProfileService {
     EmployeeProfileResponse getOrCreateMyProfile(String email);
     EmployeeProfileResponse updateMyProfile(String email, EmployeeProfileRequest request);
+    EmployeeProfileResponse updateEmployeeProfileAsAdmin(Long userId, com.infosys.knowledgegap.dto.EmployeeProfileRequest request);
     EmployeeProfileResponse getProfileByUserId(Long userId);
     List<EmployeeProfileResponse> getAllProfiles();
     List<EmployeeProfileResponse> getProfilesByDepartment(Long departmentId);
@@ -21,4 +22,7 @@ public interface EmployeeProfileService {
     WorkExperienceResponse addWorkExperience(String email, WorkExperienceRequest request);
     List<WorkExperienceResponse> getMyWorkExperience(String email);
     void deleteWorkExperience(String email, Long workExperienceId);
+
+    String uploadProfilePhoto(String email, org.springframework.web.multipart.MultipartFile file);
+    String uploadResume(String email, org.springframework.web.multipart.MultipartFile file);
 }

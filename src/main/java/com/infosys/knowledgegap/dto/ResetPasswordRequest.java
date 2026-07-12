@@ -1,18 +1,18 @@
 package com.infosys.knowledgegap.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class ResetPasswordRequest {
 
     @NotBlank
-    private String token;
+    @Email
+    private String email;
+
+    @NotBlank
+    @Pattern(regexp = "^[0-9]{6}$", message = "OTP must be exactly 6 digits")
+    private String otp;
 
     @NotBlank
     @Size(min = 8, message = "Password must be at least 8 characters long")

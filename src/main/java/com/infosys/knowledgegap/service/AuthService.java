@@ -9,5 +9,6 @@ public interface AuthService {
     void logout(String email);
     void forgotPassword(ForgotPasswordRequest request);
     void resetPassword(ResetPasswordRequest request);
+    void requestChangePasswordOtp(String email);
     void changePassword(String email, ChangePasswordRequest request);
 }

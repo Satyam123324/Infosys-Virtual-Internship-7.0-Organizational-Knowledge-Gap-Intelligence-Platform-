@@ -29,6 +29,9 @@ public class EmployeeProfile {
     @Column(length = 100)
     private String currentRoleTitle;
 
+    @Column(length = 500)
+    private String resumeUrl;
+
     @Enumerated(EnumType.STRING)
     private EmploymentType employmentType;
 

@@ -2,7 +2,6 @@ package com.infosys.knowledgegap.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -15,26 +14,22 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${app.frontend.base-url}")
-    private String frontendBaseUrl;
-
     @Async
-    public void sendPasswordResetEmail(String toEmail, String token) {
-        String resetLink = frontendBaseUrl + "/reset-password?token=" + token;
-        String body = "You requested a password reset for the Organizational Knowledge Gap "
-                + "Intelligence Platform.\n\n"
-                + "Click the link below to reset your password. This link expires in 30 minutes:\n"
-                + resetLink + "\n\n"
-                + "If you did not request this, please ignore this email.";
+    public void sendOtpEmail(String toEmail, String otp, String purposeLabel, int validMinutes) {
+        String body = "Your one-time verification code for the Knowledge Gap Intelligence Platform is:\n\n"
+                + "        " + otp + "\n\n"
+                + "This code is for: " + purposeLabel + "\n"
+                + "It expires in " + validMinutes + " minutes and can only be used once.\n\n"
+                + "If you did not request this, you can safely ignore this email.";
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            message.setSubject("Password Reset Request - Knowledge Gap Intelligence Platform");
+            message.setSubject("Your Verification Code: " + otp);
             message.setText(body);
             mailSender.send(message);
         } catch (Exception ex) {
-            log.error("Failed to send password reset email to {}: {}", toEmail, ex.getMessage());
+            log.error("Failed to send OTP email to {}: {}", toEmail, ex.getMessage());
         }
     }
 

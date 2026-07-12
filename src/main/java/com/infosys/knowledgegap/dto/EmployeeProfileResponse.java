@@ -15,6 +15,8 @@ public class EmployeeProfileResponse {
     private Long departmentId;
     private String departmentName;
     private String currentRoleTitle;
+    private String profileImageUrl;
+    private String resumeUrl;
     private EmploymentType employmentType;
     private LocalDate dateOfJoining;
     private List<EmployeeSkillResponse> skills;

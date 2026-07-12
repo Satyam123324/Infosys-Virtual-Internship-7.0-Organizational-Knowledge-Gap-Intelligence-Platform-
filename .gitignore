@@ -7,3 +7,4 @@ target/
 *.iml
 .mvn/
 .DS_Store
+uploads/

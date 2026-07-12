@@ -23,24 +23,31 @@ import java.util.List;
 /**
  * Generates targeted, human-readable learning recommendations for each detected skill gap.
  *
- * If an OpenAI API key is configured (OPENAI_API_KEY env var / app.openai.api-key), this
- * service calls the OpenAI Chat Completions API to generate a genuinely AI-written
- * recommendation tailored to the specific gap. If no key is configured, or the call fails
- * for any reason (network issue, invalid key, rate limit), it transparently falls back to
- * a deterministic rule-based recommendation — the app never breaks either way, and the
- * caller (GapAnalysisService) doesn't need to know which path was used.
+ * Tries providers in this order, each purely optional:
+ *   1. Google Gemini  — free tier available (no credit card), configured via GEMINI_API_KEY
+ *   2. OpenAI          — paid, configured via OPENAI_API_KEY (kept as an alternative if preferred)
+ *   3. Rule-based engine — always works, zero cost, zero external dependency
+ *
+ * If no key is configured, or a call fails for any reason (network issue, invalid key,
+ * rate limit), this transparently falls back to the next option. The app never breaks
+ * either way, and the caller (GapAnalysisService) doesn't need to know which path was used.
  */
 @Service
 @Slf4j
 public class RecommendationServiceImpl implements RecommendationService {
 
+    @Value("${app.gemini.api-key:}")
+    private String geminiApiKey;
+
+    @Value("${app.gemini.model:gemini-2.5-flash}")
+    private String geminiModel;
+
     @Value("${app.openai.api-key:}")
-    private String apiKey;
+    private String openaiApiKey;
 
     @Value("${app.openai.model:gpt-4o-mini}")
-    private String model;
+    private String openaiModel;
 
-    private static final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
     private static final Duration TIMEOUT = Duration.ofSeconds(12);
 
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -52,29 +59,83 @@ public class RecommendationServiceImpl implements RecommendationService {
     @Override
     public String generateRecommendationText(String skillName, ProficiencyLevel currentLevel,
                                               ProficiencyLevel requiredLevel, int gapSize, String severity) {
-        if (apiKey != null && !apiKey.isBlank()) {
+        String prompt = buildPrompt(skillName, currentLevel, requiredLevel, severity);
+
+        if (geminiApiKey != null && !geminiApiKey.isBlank()) {
             try {
-                String aiText = callOpenAi(skillName, currentLevel, requiredLevel, severity);
-                if (aiText != null && !aiText.isBlank()) {
-                    return aiText;
-                }
+                String aiText = callGemini(prompt.trim());
+                if (aiText != null && !aiText.isBlank()) return aiText;
+            } catch (Exception ex) {
+                log.warn("Gemini recommendation call failed, trying next option: {}", ex.getMessage());
+            }
+        }
+
+        if (openaiApiKey != null && !openaiApiKey.isBlank()) {
+            try {
+                String aiText = callOpenAi(prompt);
+                if (aiText != null && !aiText.isBlank()) return aiText;
             } catch (Exception ex) {
                 log.warn("OpenAI recommendation call failed, falling back to rule-based engine: {}", ex.getMessage());
             }
         }
+
         return ruleBasedRecommendation(skillName, currentLevel, requiredLevel, severity);
     }
 
-    private String callOpenAi(String skillName, ProficiencyLevel currentLevel,
-                               ProficiencyLevel requiredLevel, String severity) throws Exception {
+    private String buildPrompt(String skillName, ProficiencyLevel currentLevel,
+                                ProficiencyLevel requiredLevel, String severity) {
         String currentLabel = currentLevel != null ? formatLevel(currentLevel) : "no recorded proficiency";
-
-        String prompt = String.format(
+        return String.format(
                 "An employee's role requires %s proficiency in %s, but they are currently at %s " +
                 "(gap severity: %s). Write ONE short, encouraging, actionable recommendation (2-3 sentences max) " +
                 "on how they can close this specific skill gap. Be concrete and practical. Do not use markdown formatting.",
                 formatLevel(requiredLevel), skillName, currentLabel, severity.toLowerCase());
+    }
 
+    // ---------- Google Gemini (free tier) ----------
+
+    private String callGemini(String prompt) throws Exception {
+        String trimmedKey = geminiApiKey.trim();
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModel
+                + ":generateContent?key=" + trimmedKey;
+
+        ObjectNode partNode = objectMapper.createObjectNode();
+        partNode.put("text", prompt);
+
+        ObjectNode contentNode = objectMapper.createObjectNode();
+        contentNode.putArray("parts").add(partNode);
+
+        ObjectNode body = objectMapper.createObjectNode();
+        body.putArray("contents").add(contentNode);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(TIMEOUT)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            log.warn("Gemini API returned status {}: {}", response.statusCode(), response.body());
+            return null;
+        }
+
+        JsonNode root = objectMapper.readTree(response.body());
+        JsonNode candidates = root.get("candidates");
+        if (candidates != null && candidates.isArray() && candidates.size() > 0) {
+            JsonNode parts = candidates.get(0).path("content").path("parts");
+            if (parts.isArray() && parts.size() > 0 && parts.get(0).has("text")) {
+                return parts.get(0).get("text").asText().trim();
+            }
+        }
+        return null;
+    }
+
+    // ---------- OpenAI (paid, optional alternative) ----------
+
+    private String callOpenAi(String prompt) throws Exception {
         ObjectNode systemMsg = objectMapper.createObjectNode();
         systemMsg.put("role", "system");
         systemMsg.put("content", "You are a helpful corporate Learning & Development advisor generating concise skill-gap recommendations for an internal HR platform.");
@@ -88,16 +149,16 @@ public class RecommendationServiceImpl implements RecommendationService {
         messages.add(userMsg);
 
         ObjectNode body = objectMapper.createObjectNode();
-        body.put("model", model);
+        body.put("model", openaiModel);
         body.set("messages", messages);
         body.put("max_tokens", 150);
         body.put("temperature", 0.6);
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(OPENAI_URL))
+                .uri(URI.create("https://api.openai.com/v1/chat/completions"))
                 .timeout(TIMEOUT)
                 .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + apiKey)
+                .header("Authorization", "Bearer " + openaiApiKey.trim())
                 .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                 .build();
 
@@ -118,6 +179,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
         return null;
     }
+
+    // ---------- Rule-based fallback (always available) ----------
 
     private String ruleBasedRecommendation(String skillName, ProficiencyLevel currentLevel,
                                             ProficiencyLevel requiredLevel, String severity) {

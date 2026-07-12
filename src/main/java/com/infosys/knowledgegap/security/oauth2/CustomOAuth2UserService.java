@@ -25,31 +25,34 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(oAuth2UserRequest);
-        return processOAuth2User(oAuth2User);
+        String registrationId = oAuth2UserRequest.getClientRegistration().getRegistrationId();
+        return processOAuth2User(registrationId, oAuth2User);
     }
 
-    private OAuth2User processOAuth2User(OAuth2User oAuth2User) {
-        OAuth2UserInfo userInfo = new OAuth2UserInfo(oAuth2User.getAttributes());
+    private OAuth2User processOAuth2User(String registrationId, OAuth2User oAuth2User) {
+        OAuth2UserInfo userInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId, oAuth2User.getAttributes());
 
         if (userInfo.getEmail() == null || userInfo.getEmail().isBlank()) {
-            throw new OAuth2AuthenticationException("Email not found from Google OAuth2 provider");
+            throw new OAuth2AuthenticationException("Email not found from " + registrationId + " OAuth2 provider");
         }
+
+        AuthProvider provider = "github".equalsIgnoreCase(registrationId) ? AuthProvider.GITHUB : AuthProvider.GOOGLE;
 
         User user = userRepository.findByEmail(userInfo.getEmail())
                 .map(existing -> updateExistingUser(existing, userInfo))
-                .orElseGet(() -> registerNewOAuth2User(userInfo));
+                .orElseGet(() -> registerNewOAuth2User(userInfo, provider));
 
         return new CustomOAuth2User(user, oAuth2User.getAttributes());
     }
 
-    private User registerNewOAuth2User(OAuth2UserInfo userInfo) {
+    private User registerNewOAuth2User(OAuth2UserInfo userInfo, AuthProvider provider) {
         Role employeeRole = roleRepository.findByName(RoleType.EMPLOYEE)
                 .orElseThrow(() -> new IllegalStateException("Default EMPLOYEE role not seeded"));
 
         User user = User.builder()
                 .fullName(userInfo.getName())
                 .email(userInfo.getEmail())
-                .provider(AuthProvider.GOOGLE)
+                .provider(provider)
                 .providerId(userInfo.getId())
                 .profileImageUrl(userInfo.getImageUrl())
                 .enabled(true)

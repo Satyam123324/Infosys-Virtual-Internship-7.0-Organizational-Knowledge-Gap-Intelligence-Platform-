@@ -2,27 +2,24 @@ package com.infosys.knowledgegap.security.oauth2;
 
 import java.util.Map;
 
-public class OAuth2UserInfo {
+/**
+ * Abstracts over the different attribute shapes returned by different OAuth2 providers
+ * (Google vs GitHub have completely different JSON fields for the same concepts).
+ */
+public abstract class OAuth2UserInfo {
 
-    private final Map<String, Object> attributes;
+    protected Map<String, Object> attributes;
 
     public OAuth2UserInfo(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
 
-    public String getId() {
-        return (String) attributes.get("sub");
+    public Map<String, Object> getAttributes() {
+        return attributes;
     }
 
-    public String getName() {
-        return (String) attributes.get("name");
-    }
-
-    public String getEmail() {
-        return (String) attributes.get("email");
-    }
-
-    public String getImageUrl() {
-        return (String) attributes.get("picture");
-    }
+    public abstract String getId();
+    public abstract String getName();
+    public abstract String getEmail();
+    public abstract String getImageUrl();
 }

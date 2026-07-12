@@ -6,6 +6,7 @@ import com.infosys.knowledgegap.entity.RefreshToken;
 import com.infosys.knowledgegap.entity.Role;
 import com.infosys.knowledgegap.entity.User;
 import com.infosys.knowledgegap.enums.AuthProvider;
+import com.infosys.knowledgegap.enums.OtpPurpose;
 import com.infosys.knowledgegap.enums.RoleType;
 import com.infosys.knowledgegap.exception.DuplicateResourceException;
 import com.infosys.knowledgegap.exception.InvalidPasswordException;
@@ -26,10 +27,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,7 +49,9 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
 
     @Value("${app.password-reset.token-expiration-minutes}")
-    private long resetTokenExpirationMinutes;
+    private long otpExpirationMinutes;
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -55,9 +59,6 @@ public class AuthServiceImpl implements AuthService {
             throw new DuplicateResourceException("An account with this email already exists");
         }
 
-        // Self-registration is restricted to EMPLOYEE role by default.
-        // Elevated roles (HR Specialist, Department Head, L&D Admin, System Administrator)
-        // must be assigned by a System Administrator via the Role Management module.
         Role assignedRole = roleRepository.findByName(RoleType.EMPLOYEE)
                 .orElseThrow(() -> new ResourceNotFoundException("Default role EMPLOYEE not found"));
 
@@ -129,34 +130,31 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.deleteByUser(user);
     }
 
+    // ---------- Forgot Password (OTP) ----------
+
     @Override
     public void forgotPassword(ForgotPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("No account found with this email"));
 
-        String token = UUID.randomUUID().toString();
-
-        PasswordResetToken resetToken = PasswordResetToken.builder()
-                .token(token)
-                .user(user)
-                .expiryDate(Instant.now().plusSeconds(resetTokenExpirationMinutes * 60))
-                .used(false)
-                .build();
-
-        passwordResetTokenRepository.save(resetToken);
-        emailService.sendPasswordResetEmail(user.getEmail(), token);
+        String otp = generateAndStoreOtp(user, OtpPurpose.FORGOT_PASSWORD);
+        emailService.sendOtpEmail(user.getEmail(), otp, "resetting your password", (int) otpExpirationMinutes);
     }
 
     @Override
     public void resetPassword(ResetPasswordRequest request) {
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new InvalidTokenException("Invalid or expired password reset token"));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("No account found with this email"));
+
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.getOtp())
+                .filter(t -> t.getUser().getId().equals(user.getId()))
+                .filter(t -> t.getPurpose() == OtpPurpose.FORGOT_PASSWORD)
+                .orElseThrow(() -> new InvalidTokenException("Invalid verification code"));
 
         if (resetToken.isUsed() || resetToken.getExpiryDate().isBefore(Instant.now())) {
-            throw new InvalidTokenException("Password reset token has expired or already been used");
+            throw new InvalidTokenException("Verification code has expired or already been used. Please request a new one");
         }
 
-        User user = resetToken.getUser();
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
@@ -165,6 +163,17 @@ public class AuthServiceImpl implements AuthService {
 
         // Invalidate any existing sessions by clearing refresh tokens
         refreshTokenRepository.deleteByUser(user);
+    }
+
+    // ---------- Change Password (OTP, while logged in) ----------
+
+    @Override
+    public void requestChangePasswordOtp(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        String otp = generateAndStoreOtp(user, OtpPurpose.CHANGE_PASSWORD);
+        emailService.sendOtpEmail(user.getEmail(), otp, "changing your password", (int) otpExpirationMinutes);
     }
 
     @Override
@@ -176,11 +185,46 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidPasswordException("Current password is incorrect");
         }
 
+        PasswordResetToken otpToken = passwordResetTokenRepository.findByToken(request.getOtp())
+                .filter(t -> t.getUser().getId().equals(user.getId()))
+                .filter(t -> t.getPurpose() == OtpPurpose.CHANGE_PASSWORD)
+                .orElseThrow(() -> new InvalidTokenException("Invalid verification code"));
+
+        if (otpToken.isUsed() || otpToken.getExpiryDate().isBefore(Instant.now())) {
+            throw new InvalidTokenException("Verification code has expired or already been used. Please request a new one");
+        }
+
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+
+        otpToken.setUsed(true);
+        passwordResetTokenRepository.save(otpToken);
     }
 
     // ---------- helpers ----------
+
+    /** Generates a 6-digit numeric OTP, invalidates any previous unused OTPs of the same
+     *  purpose for this user, and persists the new one. */
+    private String generateAndStoreOtp(User user, OtpPurpose purpose) {
+        List<PasswordResetToken> existing = passwordResetTokenRepository.findByUserIdAndUsedFalse(user.getId());
+        existing.stream()
+                .filter(t -> t.getPurpose() == purpose)
+                .forEach(t -> t.setUsed(true));
+        passwordResetTokenRepository.saveAll(existing);
+
+        String otp = String.format("%06d", RANDOM.nextInt(1_000_000));
+
+        PasswordResetToken token = PasswordResetToken.builder()
+                .token(otp)
+                .user(user)
+                .purpose(purpose)
+                .expiryDate(Instant.now().plusSeconds(otpExpirationMinutes * 60))
+                .used(false)
+                .build();
+        passwordResetTokenRepository.save(token);
+
+        return otp;
+    }
 
     private AuthResponse buildAuthResponse(User user) {
         String accessToken = jwtService.generateAccessToken(user);

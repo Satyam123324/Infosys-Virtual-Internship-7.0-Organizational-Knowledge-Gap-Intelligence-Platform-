@@ -50,6 +50,16 @@ public class EmployeeProfileController {
                 employeeProfileService.getProfileByUserId(userId)));
     }
 
+    @PutMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMINISTRATOR','HR_SPECIALIST','DEPARTMENT_HEAD')")
+    @Operation(summary = "Update any employee's department/role (HR/Admin review workflow)")
+    public ResponseEntity<ApiResponse<EmployeeProfileResponse>> updateAsAdmin(
+            @PathVariable Long userId,
+            @RequestBody EmployeeProfileRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Profile updated",
+                employeeProfileService.updateEmployeeProfileAsAdmin(userId, request)));
+    }
+
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('SYSTEM_ADMINISTRATOR','HR_SPECIALIST','DEPARTMENT_HEAD','TEAM_LEAD_MANAGER')")
     @Operation(summary = "Get all employee profiles (org-wide skill inventory)")
@@ -147,5 +157,25 @@ public class EmployeeProfileController {
             @PathVariable Long workExperienceId) {
         employeeProfileService.deleteWorkExperience(userDetails.getUsername(), workExperienceId);
         return ResponseEntity.ok(ApiResponse.success("Experience deleted", null));
+    }
+
+    // ---------- File Uploads ----------
+
+    @PostMapping(value = "/me/photo", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload my profile photo (JPEG/PNG/WebP, max 5MB)")
+    public ResponseEntity<ApiResponse<String>> uploadPhoto(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        String url = employeeProfileService.uploadProfilePhoto(userDetails.getUsername(), file);
+        return ResponseEntity.ok(ApiResponse.success("Profile photo uploaded", url));
+    }
+
+    @PostMapping(value = "/me/resume", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload my resume (PDF/DOC/DOCX, max 10MB)")
+    public ResponseEntity<ApiResponse<String>> uploadResume(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        String url = employeeProfileService.uploadResume(userDetails.getUsername(), file);
+        return ResponseEntity.ok(ApiResponse.success("Resume uploaded", url));
     }
 }

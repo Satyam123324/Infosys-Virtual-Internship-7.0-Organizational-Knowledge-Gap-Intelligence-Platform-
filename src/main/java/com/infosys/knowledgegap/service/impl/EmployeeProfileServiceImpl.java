@@ -6,6 +6,7 @@ import com.infosys.knowledgegap.enums.AssessmentType;
 import com.infosys.knowledgegap.exception.ResourceNotFoundException;
 import com.infosys.knowledgegap.repository.*;
 import com.infosys.knowledgegap.service.EmployeeProfileService;
+import com.infosys.knowledgegap.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
     private final SkillRepository skillRepository;
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
     // ---------- Profile ----------
 
@@ -41,6 +43,25 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
     @Override
     public EmployeeProfileResponse updateMyProfile(String email, EmployeeProfileRequest request) {
         User user = findUserByEmail(email);
+        EmployeeProfile profile = employeeProfileRepository.findByUserId(user.getId())
+                .orElseGet(() -> EmployeeProfile.builder().user(user).build());
+
+        if (request.getDepartmentId() != null) {
+            Department dept = departmentRepository.findById(request.getDepartmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
+            profile.setDepartment(dept);
+        }
+        if (request.getCurrentRoleTitle() != null) profile.setCurrentRoleTitle(request.getCurrentRoleTitle());
+        if (request.getEmploymentType() != null) profile.setEmploymentType(request.getEmploymentType());
+        if (request.getDateOfJoining() != null) profile.setDateOfJoining(request.getDateOfJoining());
+
+        return toResponse(employeeProfileRepository.save(profile));
+    }
+
+    @Override
+    public EmployeeProfileResponse updateEmployeeProfileAsAdmin(Long userId, EmployeeProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
         EmployeeProfile profile = employeeProfileRepository.findByUserId(user.getId())
                 .orElseGet(() -> EmployeeProfile.builder().user(user).build());
 
@@ -201,6 +222,8 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
                 .departmentId(p.getDepartment() != null ? p.getDepartment().getId() : null)
                 .departmentName(p.getDepartment() != null ? p.getDepartment().getName() : null)
                 .currentRoleTitle(p.getCurrentRoleTitle())
+                .profileImageUrl(p.getUser().getProfileImageUrl())
+                .resumeUrl(p.getResumeUrl())
                 .employmentType(p.getEmploymentType())
                 .dateOfJoining(p.getDateOfJoining())
                 .skills(p.getSkills().stream().map(this::toSkillResponse).collect(Collectors.toList()))
@@ -246,5 +269,31 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
                 .endDate(w.getEndDate())
                 .description(w.getDescription())
                 .build();
+    }
+
+    @Override
+    public String uploadProfilePhoto(String email, org.springframework.web.multipart.MultipartFile file) {
+        User user = findUserByEmail(email);
+        try {
+            String url = fileStorageService.storeProfilePhoto(file, user.getId());
+            user.setProfileImageUrl(url);
+            userRepository.save(user);
+            return url;
+        } catch (java.io.IOException ex) {
+            throw new RuntimeException("Failed to store profile photo: " + ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public String uploadResume(String email, org.springframework.web.multipart.MultipartFile file) {
+        EmployeeProfile profile = getOrCreateProfileEntity(email);
+        try {
+            String url = fileStorageService.storeResume(file, profile.getUser().getId());
+            profile.setResumeUrl(url);
+            employeeProfileRepository.save(profile);
+            return url;
+        } catch (java.io.IOException ex) {
+            throw new RuntimeException("Failed to store resume: " + ex.getMessage(), ex);
+        }
     }
 }
