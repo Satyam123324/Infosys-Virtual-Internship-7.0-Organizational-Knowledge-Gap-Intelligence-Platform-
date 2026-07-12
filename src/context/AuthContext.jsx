@@ -39,6 +39,15 @@ export function AuthProvider({ children }) {
     });
   };
 
+  // Used after Google/GitHub OAuth2 redirect — we only get raw tokens back in the
+  // URL, not a full user object, so we store the tokens then fetch /users/me.
+  const loginWithTokens = async (accessToken, refreshToken) => {
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+    setLoading(true);
+    await loadProfile();
+  };
+
   const logout = async () => {
     try {
       await api.post('/auth/logout');
@@ -50,7 +59,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, loading, refreshProfile: loadProfile }}>
+    <AuthContext.Provider value={{ user, setUser, login, loginWithTokens, logout, loading, refreshProfile: loadProfile }}>
       {children}
     </AuthContext.Provider>
   );

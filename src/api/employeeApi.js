@@ -15,6 +15,27 @@ export const employeeApi = {
   addCertification: (data) => api.post('/employee-profile/me/certifications', data),
   deleteCertification: (id) => api.delete(`/employee-profile/me/certifications/${id}`),
 
+  getMyWorkExperience: () => api.get('/employee-profile/me/experience'),
+  addWorkExperience: (data) => api.post('/employee-profile/me/experience', data),
+  deleteWorkExperience: (id) => api.delete(`/employee-profile/me/experience/${id}`),
+
   getAllDepartments: () => api.get('/departments'),
   getAllProfiles: () => api.get('/employee-profile/all'),
+  getProfileByUserId: (userId) => api.get(`/employee-profile/user/${userId}`),
+  updateProfileAsAdmin: (userId, data) => api.put(`/employee-profile/user/${userId}`, data),
+
+  uploadProfilePhoto: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/employee-profile/me/photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  uploadResume: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/employee-profile/me/resume', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };

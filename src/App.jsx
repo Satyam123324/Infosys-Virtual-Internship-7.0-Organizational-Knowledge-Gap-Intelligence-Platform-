@@ -3,6 +3,10 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import OAuth2Redirect from './pages/OAuth2Redirect';
+import ForgotPassword from './pages/ForgotPassword';
+import ChangePassword from './pages/ChangePassword';
+import MyProfile from './pages/MyProfile';
 import Dashboard from './pages/Dashboard';
 import AdminConsole from './pages/AdminConsole';
 import SkillInventory from './pages/SkillInventory';
@@ -10,6 +14,7 @@ import AssessmentTest from './pages/AssessmentTest';
 import GapAnalysis from './pages/GapAnalysis';
 import AdminGapDashboard from './pages/AdminGapDashboard';
 import CompetencyFrameworks from './pages/CompetencyFrameworks';
+import AdminEmployeeProfiles from './pages/AdminEmployeeProfiles';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -25,11 +30,29 @@ export default function App() {
           <Route path="/" element={<RootRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/oauth2/redirect" element={<OAuth2Redirect />} />
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute>
+                <ChangePassword />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-profile"
+            element={
+              <ProtectedRoute>
+                <MyProfile />
               </ProtectedRoute>
             }
           />
@@ -70,6 +93,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['SYSTEM_ADMINISTRATOR', 'HR_SPECIALIST', 'LEARNING_DEVELOPMENT_ADMIN']}>
                 <CompetencyFrameworks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/employee-profiles"
+            element={
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMINISTRATOR', 'HR_SPECIALIST', 'DEPARTMENT_HEAD']}>
+                <AdminEmployeeProfiles />
               </ProtectedRoute>
             }
           />

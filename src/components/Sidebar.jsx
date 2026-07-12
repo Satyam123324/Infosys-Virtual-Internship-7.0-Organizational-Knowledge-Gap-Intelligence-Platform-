@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers } from 'lucide-react';
+import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers, Users, KeyRound, UserCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
@@ -12,6 +12,8 @@ export default function Sidebar() {
   const canSeeOrgGaps = user.roles?.some((r) => ['SYSTEM_ADMINISTRATOR', 'HR_SPECIALIST'].includes(r));
   const canManageFrameworks = user.roles?.some((r) =>
     ['SYSTEM_ADMINISTRATOR', 'HR_SPECIALIST', 'LEARNING_DEVELOPMENT_ADMIN'].includes(r));
+  const canSeeAllProfiles = user.roles?.some((r) =>
+    ['SYSTEM_ADMINISTRATOR', 'HR_SPECIALIST', 'DEPARTMENT_HEAD'].includes(r));
 
   const initials = user.fullName
     .split(' ')
@@ -38,6 +40,9 @@ export default function Sidebar() {
       <NavLink to="/dashboard" className={linkClass}>
         <LayoutDashboard size={17} /> Dashboard
       </NavLink>
+      <NavLink to="/my-profile" className={linkClass}>
+        <UserCircle size={17} /> My Profile
+      </NavLink>
       <NavLink to="/skills" className={linkClass}>
         <ListChecks size={17} /> My Skills
       </NavLink>
@@ -48,9 +53,14 @@ export default function Sidebar() {
         <Radar size={17} /> My Gap Analysis
       </NavLink>
 
-      {(canSeeOrgGaps || canManageFrameworks || isAdmin) && (
+      {(canSeeOrgGaps || canManageFrameworks || canSeeAllProfiles || isAdmin) && (
         <>
           <div className="nav-group-label">Administration</div>
+          {canSeeAllProfiles && (
+            <NavLink to="/admin/employee-profiles" className={linkClass}>
+              <Users size={17} /> Manage Employees
+            </NavLink>
+          )}
           {canSeeOrgGaps && (
             <NavLink to="/admin/gap-dashboard" className={linkClass}>
               <Radar size={17} /> Org Gap Dashboard
@@ -68,6 +78,11 @@ export default function Sidebar() {
           )}
         </>
       )}
+
+      <div className="nav-group-label">Account</div>
+      <NavLink to="/change-password" className={linkClass}>
+        <KeyRound size={17} /> Change Password
+      </NavLink>
 
       <div className="sidebar-footer">
         <div className="sidebar-user">
