@@ -48,12 +48,6 @@ public class CompetencyFrameworkServiceImpl implements CompetencyFrameworkServic
 
         framework = frameworkRepository.save(framework);
 
-        // Replace requirements cleanly each time the framework is saved
-        List<CompetencyRequirement> existing = requirementRepository.findByFrameworkId(framework.getId());
-        if (!existing.isEmpty()) {
-            requirementRepository.deleteAll(existing);
-        }
-
         RoleCompetencyFramework finalFramework = framework;
         List<CompetencyRequirement> newRequirements = request.getRequirements().stream().map(reqDto -> {
             Skill skill = skillRepository.findById(reqDto.getSkillId())
@@ -66,8 +60,13 @@ public class CompetencyFrameworkServiceImpl implements CompetencyFrameworkServic
                     .build();
         }).collect(Collectors.toList());
 
-        requirementRepository.saveAll(newRequirements);
-        framework.setRequirements(newRequirements);
+        // Mutate the existing managed collection in place (clear + re-add) rather than
+        // replacing it with a new List instance — Hibernate's orphanRemoval requires the
+        // original PersistentCollection wrapper to remain in place, or it throws
+        // "no longer referenced by the owning entity instance".
+        framework.getRequirements().clear();
+        framework.getRequirements().addAll(newRequirements);
+        framework = frameworkRepository.save(framework);
 
         return toResponse(framework);
     }
