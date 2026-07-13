@@ -67,10 +67,24 @@ h1, h2, h3, .display, .stat-value {
   color: var(--slate-300);
   display: flex;
   flex-direction: column;
-  padding: 24px 16px;
+  padding: 24px 16px 0;
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 12px;
+}
+
+.sidebar-scroll::-webkit-scrollbar { width: 5px; }
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--ink-700);
+  border-radius: 3px;
 }
 
 .sidebar-brand {
@@ -137,8 +151,8 @@ h1, h2, h3, .display, .stat-value {
 .nav-link svg { flex-shrink: 0; }
 
 .sidebar-footer {
-  margin-top: auto;
-  padding-top: 16px;
+  flex-shrink: 0;
+  padding: 16px 0 20px;
   border-top: 1px solid var(--ink-700);
 }
 

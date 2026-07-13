@@ -31,58 +31,60 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="mark"><Brain size={18} /></div>
-        Knowledge Gap<br />Intelligence
+      <div className="sidebar-scroll">
+        <div className="sidebar-brand">
+          <div className="mark"><Brain size={18} /></div>
+          Knowledge Gap<br />Intelligence
+        </div>
+
+        <div className="nav-group-label">Workspace</div>
+        <NavLink to="/dashboard" className={linkClass}>
+          <LayoutDashboard size={17} /> Dashboard
+        </NavLink>
+        <NavLink to="/my-profile" className={linkClass}>
+          <UserCircle size={17} /> My Profile
+        </NavLink>
+        <NavLink to="/skills" className={linkClass}>
+          <ListChecks size={17} /> My Skills
+        </NavLink>
+        <NavLink to="/assessment" className={linkClass}>
+          <ClipboardCheck size={17} /> Assessment Test
+        </NavLink>
+        <NavLink to="/gap-analysis" className={linkClass}>
+          <Radar size={17} /> My Gap Analysis
+        </NavLink>
+
+        {(canSeeOrgGaps || canManageFrameworks || canSeeAllProfiles || isAdmin) && (
+          <>
+            <div className="nav-group-label">Administration</div>
+            {canSeeAllProfiles && (
+              <NavLink to="/admin/employee-profiles" className={linkClass}>
+                <Users size={17} /> Manage Employees
+              </NavLink>
+            )}
+            {canSeeOrgGaps && (
+              <NavLink to="/admin/gap-dashboard" className={linkClass}>
+                <Radar size={17} /> Org Gap Dashboard
+              </NavLink>
+            )}
+            {canManageFrameworks && (
+              <NavLink to="/admin/competency-frameworks" className={linkClass}>
+                <Layers size={17} /> Competency Frameworks
+              </NavLink>
+            )}
+            {isAdmin && (
+              <NavLink to="/admin" className={linkClass}>
+                <ShieldCheck size={17} /> Admin Console
+              </NavLink>
+            )}
+          </>
+        )}
+
+        <div className="nav-group-label">Account</div>
+        <NavLink to="/change-password" className={linkClass}>
+          <KeyRound size={17} /> Change Password
+        </NavLink>
       </div>
-
-      <div className="nav-group-label">Workspace</div>
-      <NavLink to="/dashboard" className={linkClass}>
-        <LayoutDashboard size={17} /> Dashboard
-      </NavLink>
-      <NavLink to="/my-profile" className={linkClass}>
-        <UserCircle size={17} /> My Profile
-      </NavLink>
-      <NavLink to="/skills" className={linkClass}>
-        <ListChecks size={17} /> My Skills
-      </NavLink>
-      <NavLink to="/assessment" className={linkClass}>
-        <ClipboardCheck size={17} /> Assessment Test
-      </NavLink>
-      <NavLink to="/gap-analysis" className={linkClass}>
-        <Radar size={17} /> My Gap Analysis
-      </NavLink>
-
-      {(canSeeOrgGaps || canManageFrameworks || canSeeAllProfiles || isAdmin) && (
-        <>
-          <div className="nav-group-label">Administration</div>
-          {canSeeAllProfiles && (
-            <NavLink to="/admin/employee-profiles" className={linkClass}>
-              <Users size={17} /> Manage Employees
-            </NavLink>
-          )}
-          {canSeeOrgGaps && (
-            <NavLink to="/admin/gap-dashboard" className={linkClass}>
-              <Radar size={17} /> Org Gap Dashboard
-            </NavLink>
-          )}
-          {canManageFrameworks && (
-            <NavLink to="/admin/competency-frameworks" className={linkClass}>
-              <Layers size={17} /> Competency Frameworks
-            </NavLink>
-          )}
-          {isAdmin && (
-            <NavLink to="/admin" className={linkClass}>
-              <ShieldCheck size={17} /> Admin Console
-            </NavLink>
-          )}
-        </>
-      )}
-
-      <div className="nav-group-label">Account</div>
-      <NavLink to="/change-password" className={linkClass}>
-        <KeyRound size={17} /> Change Password
-      </NavLink>
 
       <div className="sidebar-footer">
         <div className="sidebar-user">

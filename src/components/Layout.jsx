@@ -1,4 +1,5 @@
 import Sidebar from './Sidebar';
+import NotificationBell from './NotificationBell';
 
 export default function Layout({ title, subtitle, children }) {
   return (
@@ -9,6 +10,7 @@ export default function Layout({ title, subtitle, children }) {
           <div className="topbar-title">
             Organizational Knowledge Gap Intelligence Platform
           </div>
+          <NotificationBell />
         </div>
         <div className="page-content">
           {(title || subtitle) && (
