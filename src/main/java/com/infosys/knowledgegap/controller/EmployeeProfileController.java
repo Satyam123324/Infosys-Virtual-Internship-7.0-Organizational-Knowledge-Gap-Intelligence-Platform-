@@ -159,6 +159,14 @@ public class EmployeeProfileController {
         return ResponseEntity.ok(ApiResponse.success("Experience deleted", null));
     }
 
+    @GetMapping("/colleagues")
+    @Operation(summary = "Get a lightweight list of colleagues (for peer assessment selection)")
+    public ResponseEntity<ApiResponse<List<ColleagueDto>>> getColleagues(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success("Colleagues fetched",
+                employeeProfileService.getColleagues(userDetails.getUsername())));
+    }
+
     // ---------- File Uploads ----------
 
     @PostMapping(value = "/me/photo", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)

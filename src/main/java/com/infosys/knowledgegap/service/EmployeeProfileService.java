@@ -25,4 +25,6 @@ public interface EmployeeProfileService {
 
     String uploadProfilePhoto(String email, org.springframework.web.multipart.MultipartFile file);
     String uploadResume(String email, org.springframework.web.multipart.MultipartFile file);
+
+    List<ColleagueDto> getColleagues(String excludeEmail);
 }

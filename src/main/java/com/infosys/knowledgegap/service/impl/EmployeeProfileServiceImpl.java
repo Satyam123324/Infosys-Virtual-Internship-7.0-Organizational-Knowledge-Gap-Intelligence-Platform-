@@ -296,4 +296,18 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
             throw new RuntimeException("Failed to store resume: " + ex.getMessage(), ex);
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ColleagueDto> getColleagues(String excludeEmail) {
+        return employeeProfileRepository.findAll().stream()
+                .filter(p -> !p.getUser().getEmail().equalsIgnoreCase(excludeEmail))
+                .map(p -> ColleagueDto.builder()
+                        .userId(p.getUser().getId())
+                        .fullName(p.getUser().getFullName())
+                        .departmentName(p.getDepartment() != null ? p.getDepartment().getName() : null)
+                        .currentRoleTitle(p.getCurrentRoleTitle())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
