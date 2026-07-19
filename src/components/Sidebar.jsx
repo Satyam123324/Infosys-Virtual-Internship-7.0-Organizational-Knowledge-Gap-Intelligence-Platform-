@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers, Users, KeyRound, UserCircle } from 'lucide-react';
+import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers, Users, KeyRound, UserCircle, Bell, GraduationCap, Star, Award, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
@@ -52,6 +52,21 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/gap-analysis" className={linkClass}>
           <Radar size={17} /> My Gap Analysis
+        </NavLink>
+        <NavLink to="/notifications" className={linkClass}>
+          <Bell size={17} /> Notification Center
+        </NavLink>
+        <NavLink to="/mentorship" className={linkClass}>
+          <GraduationCap size={17} /> Mentorship
+        </NavLink>
+        <NavLink to="/skill-reviews" className={linkClass}>
+          <Star size={17} /> Skill Reviews
+        </NavLink>
+        <NavLink to="/certifications" className={linkClass}>
+          <Award size={17} /> Certifications
+        </NavLink>
+        <NavLink to="/knowledge-articles" className={linkClass}>
+          <BookOpen size={17} /> Knowledge Library
         </NavLink>
 
         {(canSeeOrgGaps || canManageFrameworks || canSeeAllProfiles || isAdmin) && (

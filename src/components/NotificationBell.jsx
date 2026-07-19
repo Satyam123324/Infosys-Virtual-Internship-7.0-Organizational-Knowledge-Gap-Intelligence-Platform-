@@ -1,25 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, AlertTriangle, AlertOctagon, ShieldAlert, Check, X } from 'lucide-react';
+import { Bell, Check, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { notificationApi } from '../api/notificationApi';
-
-const TYPE_ICON = {
-  CRITICAL_GAP: { Icon: AlertOctagon, color: '#e11d48', bg: '#fff1f2' },
-  MODERATE_GAP: { Icon: AlertTriangle, color: '#f59e0b', bg: '#fffbeb' },
-  CERTIFICATION_EXPIRING: { Icon: ShieldAlert, color: '#f59e0b', bg: '#fffbeb' },
-  CERTIFICATION_EXPIRED: { Icon: ShieldAlert, color: '#e11d48', bg: '#fff1f2' },
-  ASSESSMENT_REMINDER: { Icon: Bell, color: '#2563eb', bg: '#eff6ff' },
-  GENERAL: { Icon: Bell, color: '#64748b', bg: '#f1f5f9' },
-};
-
-function timeAgo(dateStr) {
-  const diffMs = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
+import { TYPE_ICON, timeAgo } from '../utils/notificationTypeMeta';
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -120,7 +103,7 @@ export default function NotificationBell() {
               You're all caught up — no alerts right now.
             </div>
           ) : (
-            notifications.map((n) => {
+            notifications.slice(0, 8).map((n) => {
               const { Icon, color, bg } = TYPE_ICON[n.type] || TYPE_ICON.GENERAL;
               return (
                 <div
@@ -155,6 +138,17 @@ export default function NotificationBell() {
               );
             })
           )}
+
+          <Link
+            to="/notifications"
+            onClick={() => setOpen(false)}
+            style={{
+              display: 'block', textAlign: 'center', padding: '10px 16px', fontSize: 12.5,
+              fontWeight: 600, color: '#0d9488', textDecoration: 'none', borderTop: '1px solid #f1f5f9',
+            }}
+          >
+            View all notifications
+          </Link>
         </div>
       )}
     </div>

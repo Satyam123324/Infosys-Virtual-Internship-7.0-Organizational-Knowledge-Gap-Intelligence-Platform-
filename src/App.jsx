@@ -15,6 +15,13 @@ import GapAnalysis from './pages/GapAnalysis';
 import AdminGapDashboard from './pages/AdminGapDashboard';
 import CompetencyFrameworks from './pages/CompetencyFrameworks';
 import AdminEmployeeProfiles from './pages/AdminEmployeeProfiles';
+import NotificationCenter from './pages/NotificationCenter';
+import MentorshipDirectory from './pages/MentorshipDirectory';
+import SkillReviewForms from './pages/SkillReviewForms';
+import Certifications from './pages/Certifications';
+import KnowledgeLibrary from './pages/KnowledgeLibrary';
+import ArticleView from './pages/ArticleView';
+import ArticleEditor from './pages/ArticleEditor';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -77,6 +84,70 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <GapAnalysis />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationCenter />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mentorship"
+            element={
+              <ProtectedRoute>
+                <MentorshipDirectory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/skill-reviews"
+            element={
+              <ProtectedRoute>
+                <SkillReviewForms />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/certifications"
+            element={
+              <ProtectedRoute>
+                <Certifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-articles"
+            element={
+              <ProtectedRoute>
+                <KnowledgeLibrary />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-articles/new"
+            element={
+              <ProtectedRoute>
+                <ArticleEditor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-articles/:id/edit"
+            element={
+              <ProtectedRoute>
+                <ArticleEditor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-articles/:id"
+            element={
+              <ProtectedRoute>
+                <ArticleView />
               </ProtectedRoute>
             }
           />
