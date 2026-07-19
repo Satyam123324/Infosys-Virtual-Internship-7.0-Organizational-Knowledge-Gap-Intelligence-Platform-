@@ -50,4 +50,24 @@ public class EmailService {
             log.error("Failed to send welcome email to {}: {}", toEmail, ex.getMessage());
         }
     }
+
+    /**
+     * Generic delivery channel for the Notification module. SMS/push are stubbed
+     * for now (see NotificationServiceImpl) — this is the only channel that
+     * actually sends. Runs async so a slow/broken SMTP server never blocks the
+     * request that triggered the notification (e.g. the nightly scheduler sweep).
+     */
+    @Async
+    public void sendNotificationEmail(String toEmail, String subject, String body) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(toEmail);
+            message.setSubject(subject);
+            message.setText(body + "\n\n— Knowledge Gap Intelligence Platform\n"
+                    + "You can manage or dismiss this in your Notification Center.");
+            mailSender.send(message);
+        } catch (Exception ex) {
+            log.error("Failed to send notification email to {}: {}", toEmail, ex.getMessage());
+        }
+    }
 }

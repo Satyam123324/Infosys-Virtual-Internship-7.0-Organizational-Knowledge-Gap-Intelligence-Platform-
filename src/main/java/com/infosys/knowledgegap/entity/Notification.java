@@ -33,6 +33,9 @@ public class Notification {
     @Column(nullable = false, length = 100)
     private String dedupeKey;
 
+    /** Optional id of the source record (training enrollment, session, milestone, etc.) for deep-linking in the UI. */
+    private Long referenceId;
+
     @Builder.Default
     private boolean read = false;
 
