@@ -12,6 +12,5 @@ public class NotificationResponse {
     private String title;
     private String message;
     private boolean read;
-    private Long referenceId;
     private LocalDateTime createdAt;
 }
