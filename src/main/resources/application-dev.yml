@@ -1,13 +1,15 @@
 # ── Development profile (uses H2 in-memory DB so no PostgreSQL needed) ──
 spring:
+  # File-based H2 so your data (accounts, skills, etc.) survives restarts.
+  # Delete the ./data folder any time you want a clean slate.
   datasource:
-    url: jdbc:h2:mem:knowledgegapdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:file:./data/knowledgegap-dev;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     database-platform: org.hibernate.dialect.H2Dialect
     properties:
       hibernate:
@@ -18,9 +20,26 @@ spring:
       enabled: true
       path: /h2-console
 
-  # Disable real mail in dev
+  # Real email in dev, so OTP + notifications actually deliver. Reads Gmail
+  # credentials from .env (run-dev.bat loads it). If they're missing, sending
+  # fails quietly on a background thread and the OTP still prints to the console
+  # (app.otp.log-to-console below), so the reset flow is never blocked.
   mail:
-    host: localhost
-    port: 1025
-    username: test
-    password: test
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+        transport:
+          protocol: smtp
+
+# Dev-only: print OTP codes to the console (no real email needed to test
+# password reset / change). Never enable this in production.
+app:
+  otp:
+    log-to-console: true

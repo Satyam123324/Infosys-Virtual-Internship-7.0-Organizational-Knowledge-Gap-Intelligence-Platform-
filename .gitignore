@@ -8,3 +8,6 @@ target/
 .mvn/
 .DS_Store
 uploads/
+data/
+*.mv.db
+*.trace.db

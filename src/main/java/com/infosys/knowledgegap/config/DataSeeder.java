@@ -7,6 +7,9 @@ import com.infosys.knowledgegap.entity.Role;
 import com.infosys.knowledgegap.entity.RoleCompetencyFramework;
 import com.infosys.knowledgegap.entity.Skill;
 import com.infosys.knowledgegap.entity.SkillCategory;
+import com.infosys.knowledgegap.entity.EmployeeProfile;
+import com.infosys.knowledgegap.entity.EmployeeSkill;
+import com.infosys.knowledgegap.entity.User;
 import com.infosys.knowledgegap.enums.ProficiencyLevel;
 import com.infosys.knowledgegap.enums.RoleType;
 import com.infosys.knowledgegap.repository.AssessmentQuestionRepository;
@@ -16,12 +19,16 @@ import com.infosys.knowledgegap.repository.RoleCompetencyFrameworkRepository;
 import com.infosys.knowledgegap.repository.RoleRepository;
 import com.infosys.knowledgegap.repository.SkillCategoryRepository;
 import com.infosys.knowledgegap.repository.SkillRepository;
+import com.infosys.knowledgegap.repository.UserRepository;
+import com.infosys.knowledgegap.repository.EmployeeProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -34,6 +41,9 @@ public class DataSeeder implements CommandLineRunner {
     private final AssessmentQuestionRepository assessmentQuestionRepository;
     private final RoleCompetencyFrameworkRepository frameworkRepository;
     private final CompetencyRequirementRepository requirementRepository;
+    private final UserRepository userRepository;
+    private final EmployeeProfileRepository employeeProfileRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
@@ -42,6 +52,80 @@ public class DataSeeder implements CommandLineRunner {
         seedSkills();
         seedAssessmentQuestions();
         seedCompetencyFrameworks();
+        seedAdminAccount();
+        seedDemoEmployees();
+    }
+
+    // A ready-to-use System Administrator so the Admin area is reachable out of
+    // the box. Idempotent. Login: admin@demo.local / Admin@1234
+    private void seedAdminAccount() {
+        if (userRepository.existsByEmail("admin@demo.local")) return;
+        Role adminRole = roleRepository.findByName(RoleType.SYSTEM_ADMINISTRATOR).orElse(null);
+        if (adminRole == null) return;
+        userRepository.save(User.builder()
+                .fullName("System Administrator")
+                .email("admin@demo.local")
+                .password(passwordEncoder.encode("Admin@1234"))
+                .designation("System Administrator")
+                .enabled(true)
+                .roles(Set.of(adminRole))
+                .build());
+    }
+
+    // Demo colleagues so the Mentorship (experts), Peer Assessment (colleagues),
+    // and workforce views have real data out of the box. Idempotent: only runs
+    // once, guarded by the first demo email. Login password for all: Demo@1234
+    private void seedDemoEmployees() {
+        if (userRepository.existsByEmail("aarav.mehta@demo.local")) return;
+
+        Role employeeRole = roleRepository.findByName(RoleType.EMPLOYEE).orElse(null);
+        if (employeeRole == null) return;
+
+        createDemoEmployee("Aarav Mehta", "aarav.mehta@demo.local", "Engineering", "Senior Backend Engineer",
+                employeeRole, Map.of("Java", ProficiencyLevel.EXPERT, "Spring Boot", ProficiencyLevel.ADVANCED, "SQL", ProficiencyLevel.ADVANCED));
+        createDemoEmployee("Priya Sharma", "priya.sharma@demo.local", "Engineering", "Cloud Architect",
+                employeeRole, Map.of("AWS", ProficiencyLevel.EXPERT, "Docker", ProficiencyLevel.ADVANCED, "Kubernetes", ProficiencyLevel.ADVANCED));
+        createDemoEmployee("Sneha Reddy", "sneha.reddy@demo.local", "Engineering", "Frontend Lead",
+                employeeRole, Map.of("JavaScript", ProficiencyLevel.EXPERT, "React", ProficiencyLevel.EXPERT, "Git", ProficiencyLevel.ADVANCED));
+        createDemoEmployee("Rohan Verma", "rohan.verma@demo.local", "Product", "Product Manager",
+                employeeRole, Map.of("Communication", ProficiencyLevel.EXPERT, "Leadership", ProficiencyLevel.ADVANCED, "Problem Solving", ProficiencyLevel.ADVANCED));
+        createDemoEmployee("Ananya Iyer", "ananya.iyer@demo.local", "Design", "Senior UX Designer",
+                employeeRole, Map.of("Teamwork", ProficiencyLevel.EXPERT, "Communication", ProficiencyLevel.ADVANCED, "Problem Solving", ProficiencyLevel.INTERMEDIATE));
+        createDemoEmployee("Karan Nair", "karan.nair@demo.local", "HR", "HR Business Partner",
+                employeeRole, Map.of("Communication", ProficiencyLevel.EXPERT, "Leadership", ProficiencyLevel.EXPERT, "Teamwork", ProficiencyLevel.ADVANCED));
+    }
+
+    private void createDemoEmployee(String fullName, String email, String deptName, String roleTitle,
+                                    Role role, Map<String, ProficiencyLevel> skillLevels) {
+        Department department = departmentRepository.findByName(deptName).orElse(null);
+
+        User user = userRepository.save(User.builder()
+                .fullName(fullName)
+                .email(email)
+                .password(passwordEncoder.encode("Demo@1234"))
+                .department(deptName)
+                .designation(roleTitle)
+                .enabled(true)
+                .roles(Set.of(role))
+                .build());
+
+        EmployeeProfile profile = EmployeeProfile.builder()
+                .user(user)
+                .department(department)
+                .currentRoleTitle(roleTitle)
+                .build();
+
+        skillLevels.forEach((skillName, level) -> {
+            Skill skill = skillRepository.findByName(skillName).orElse(null);
+            if (skill == null) return;
+            profile.getSkills().add(EmployeeSkill.builder()
+                    .employeeProfile(profile)
+                    .skill(skill)
+                    .proficiencyLevel(level)
+                    .build());
+        });
+
+        employeeProfileRepository.save(profile);
     }
 
     private void seedRoles() {

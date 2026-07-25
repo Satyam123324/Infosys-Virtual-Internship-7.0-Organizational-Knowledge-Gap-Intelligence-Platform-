@@ -2,6 +2,7 @@ package com.infosys.knowledgegap.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -14,8 +15,18 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    // When true (dev only), the OTP is printed to the console so the password
+    // reset / change flow can be tested locally without a real SMTP server.
+    // Keep this false in production — it must never log real verification codes.
+    @Value("${app.otp.log-to-console:false}")
+    private boolean logOtpToConsole;
+
     @Async
     public void sendOtpEmail(String toEmail, String otp, String purposeLabel, int validMinutes) {
+        if (logOtpToConsole) {
+            log.warn("=== DEV OTP for {} ({}): {}  [valid {} min] ===", toEmail, purposeLabel, otp, validMinutes);
+        }
+
         String body = "Your one-time verification code for the Knowledge Gap Intelligence Platform is:\n\n"
                 + "        " + otp + "\n\n"
                 + "This code is for: " + purposeLabel + "\n"

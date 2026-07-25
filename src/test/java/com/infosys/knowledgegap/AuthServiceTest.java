@@ -41,7 +41,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(authService, "resetTokenExpirationMinutes", 30L);
+        ReflectionTestUtils.setField(authService, "otpExpirationMinutes", 30L);
     }
 
     @Test
