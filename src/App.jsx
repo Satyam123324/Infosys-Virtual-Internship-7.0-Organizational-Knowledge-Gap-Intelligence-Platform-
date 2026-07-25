@@ -14,15 +14,15 @@ import AssessmentTest from './pages/AssessmentTest';
 import GapAnalysis from './pages/GapAnalysis';
 import AdminGapDashboard from './pages/AdminGapDashboard';
 import AdminDashboard from './pages/AdminDashboard';
-import SkillsReview from './pages/SkillsReview';
-import Certifications from './pages/Certifications';
-import NotificationCenter from './pages/NotificationCenter';
 import CompetencyFrameworks from './pages/CompetencyFrameworks';
 import AdminEmployeeProfiles from './pages/AdminEmployeeProfiles';
-import PeerAssessment from './pages/PeerAssessment';
-import Mentorship from './pages/Mentorship';
-import TrainingEnrollment from './pages/TrainingEnrollment';
-import KnowledgeArticles from './pages/KnowledgeArticles';
+import NotificationCenter from './pages/NotificationCenter';
+import MentorshipDirectory from './pages/MentorshipDirectory';
+import SkillReviewForms from './pages/SkillReviewForms';
+import Certifications from './pages/Certifications';
+import KnowledgeLibrary from './pages/KnowledgeLibrary';
+import ArticleView from './pages/ArticleView';
+import ArticleEditor from './pages/ArticleEditor';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -65,38 +65,6 @@ export default function App() {
             }
           />
           <Route
-            path="/peer-assessment"
-            element={
-              <ProtectedRoute>
-                <PeerAssessment />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/skill-review"
-            element={
-              <ProtectedRoute>
-                <SkillsReview />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/certifications"
-            element={
-              <ProtectedRoute>
-                <Certifications />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <NotificationCenter />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/skills"
             element={
               <ProtectedRoute>
@@ -121,18 +89,34 @@ export default function App() {
             }
           />
           <Route
-            path="/mentorship"
+            path="/notifications"
             element={
               <ProtectedRoute>
-                <Mentorship />
+                <NotificationCenter />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/training"
+            path="/mentorship"
             element={
               <ProtectedRoute>
-                <TrainingEnrollment />
+                <MentorshipDirectory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/skill-reviews"
+            element={
+              <ProtectedRoute>
+                <SkillReviewForms />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/certifications"
+            element={
+              <ProtectedRoute>
+                <Certifications />
               </ProtectedRoute>
             }
           />
@@ -140,7 +124,31 @@ export default function App() {
             path="/knowledge-articles"
             element={
               <ProtectedRoute>
-                <KnowledgeArticles />
+                <KnowledgeLibrary />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-articles/new"
+            element={
+              <ProtectedRoute>
+                <ArticleEditor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-articles/:id/edit"
+            element={
+              <ProtectedRoute>
+                <ArticleEditor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-articles/:id"
+            element={
+              <ProtectedRoute>
+                <ArticleView />
               </ProtectedRoute>
             }
           />

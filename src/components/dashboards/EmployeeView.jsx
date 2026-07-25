@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ListChecks, Award, ArrowRight } from 'lucide-react';
 import { employeeApi } from '../../api/employeeApi';
+import MyTrainingSection from './MyTrainingSection';
+import CertificationBanner from '../CertificationBanner';
 
 export default function EmployeeView({ user }) {
   const [skills, setSkills] = useState([]);
@@ -27,6 +29,7 @@ export default function EmployeeView({ user }) {
 
   return (
     <>
+      <CertificationBanner />
       <div className="hero-card">
         <div className="hero-eyebrow">My Workspace</div>
         <div className="hero-title">{user.fullName}</div>
@@ -52,6 +55,10 @@ export default function EmployeeView({ user }) {
         <Link to="/skills" style={{ color: '#0d9488', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', marginLeft: 16 }}>
           Update my skills <ArrowRight size={15} />
         </Link>
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <MyTrainingSection />
       </div>
 
       <div className="section-title">Assigned Roles</div>

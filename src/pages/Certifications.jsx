@@ -1,25 +1,26 @@
 import { useEffect, useState } from 'react';
-import { Award, Plus, Trash2, ExternalLink } from 'lucide-react';
 import Layout from '../components/Layout';
+import { Award, Plus, X, ExternalLink, Trash2 } from 'lucide-react';
 import { employeeApi } from '../api/employeeApi';
+import { getCertificationStatus } from '../utils/certificationStatus';
 
-const EMPTY = { name: '', issuingBody: '', issueDate: '', expiryDate: '', credentialUrl: '' };
+const EMPTY_FORM = { name: '', issuingBody: '', issueDate: '', expiryDate: '', credentialUrl: '' };
 
 export default function Certifications() {
-  const [certs, setCerts] = useState([]);
+  const [certifications, setCertifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [form, setForm] = useState(EMPTY);
-  const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
       const { data } = await employeeApi.getMyCertifications();
-      setCerts(data.data || []);
+      setCertifications(data.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load certifications');
+      setError('Failed to load certifications');
     } finally {
       setLoading(false);
     }
@@ -27,114 +28,131 @@ export default function Certifications() {
 
   useEffect(() => { load(); }, []);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) return;
-    setSubmitting(true);
     setError('');
-    setSuccess('');
+    setSaving(true);
     try {
       await employeeApi.addCertification({
-        name: form.name,
-        issuingBody: form.issuingBody || null,
+        ...form,
         issueDate: form.issueDate || null,
         expiryDate: form.expiryDate || null,
-        credentialUrl: form.credentialUrl || null,
       });
-      setSuccess('Certification added!');
-      setForm(EMPTY);
+      setForm(EMPTY_FORM);
+      setShowForm(false);
       load();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to add certification');
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this certification?')) return;
     try {
       await employeeApi.deleteCertification(id);
       load();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete certification');
-    }
+    } catch (err) { /* ignore */ }
   };
 
+  // Soonest-expiring first, so what needs attention surfaces at the top.
+  const sorted = [...certifications].sort((a, b) => {
+    if (!a.expiryDate) return 1;
+    if (!b.expiryDate) return -1;
+    return new Date(a.expiryDate) - new Date(b.expiryDate);
+  });
+
   return (
-    <Layout title="Certifications" subtitle="Track your professional certifications and renewal dates">
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+    <Layout title="My Certifications" subtitle="Track credentials and stay ahead of renewals">
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+        <button className="btn-sm" onClick={() => setShowForm((s) => !s)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Plus size={14} /> Add Certification
+        </button>
+      </div>
 
-      <div className="info-card" style={{ marginBottom: 24 }}>
-        <div className="section-title" style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Plus size={16} /> Add a Certification
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
-            <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: 220 }}>
-              <label>Name *</label>
-              <input name="name" value={form.name} onChange={handleChange} placeholder="e.g. AWS Certified Solutions Architect" required />
+      {showForm && (
+        <form onSubmit={handleSubmit} className="info-card" style={{ marginBottom: 20 }}>
+          {error && <div className="alert alert-error" style={{ marginBottom: 10 }}>{error}</div>}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div className="form-group" style={{ flex: '1 1 220px', marginBottom: 0 }}>
+              <label>Certification Name</label>
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
             </div>
-            <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: 180 }}>
+            <div className="form-group" style={{ flex: '1 1 180px', marginBottom: 0 }}>
               <label>Issuing Body</label>
-              <input name="issuingBody" value={form.issuingBody} onChange={handleChange} placeholder="e.g. Amazon Web Services" />
+              <input value={form.issuingBody} onChange={(e) => setForm({ ...form, issuingBody: e.target.value })} placeholder="e.g. AWS" />
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
-            <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: 150 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12 }}>
+            <div className="form-group" style={{ flex: '1 1 160px', marginBottom: 0 }}>
               <label>Issue Date</label>
-              <input type="date" name="issueDate" value={form.issueDate} onChange={handleChange} />
+              <input type="date" value={form.issueDate} onChange={(e) => setForm({ ...form, issueDate: e.target.value })} />
             </div>
-            <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: 150 }}>
-              <label>Expiry Date</label>
-              <input type="date" name="expiryDate" value={form.expiryDate} onChange={handleChange} />
+            <div className="form-group" style={{ flex: '1 1 160px', marginBottom: 0 }}>
+              <label>Expiry Date (optional)</label>
+              <input type="date" value={form.expiryDate} onChange={(e) => setForm({ ...form, expiryDate: e.target.value })} />
             </div>
-            <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: 200 }}>
-              <label>Credential URL</label>
-              <input name="credentialUrl" value={form.credentialUrl} onChange={handleChange} placeholder="https://..." />
+            <div className="form-group" style={{ flex: '1 1 220px', marginBottom: 0 }}>
+              <label>Credential URL (optional)</label>
+              <input value={form.credentialUrl} onChange={(e) => setForm({ ...form, credentialUrl: e.target.value })} placeholder="https://..." />
             </div>
           </div>
-          <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '10px 24px' }} disabled={submitting}>
-            {submitting ? 'Adding...' : 'Add Certification'}
-          </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+            <button type="submit" className="btn-primary" style={{ width: 'auto', padding: '9px 18px' }} disabled={saving}>
+              {saving ? 'Saving...' : 'Add Certification'}
+            </button>
+            <button type="button" className="btn-sm" onClick={() => setShowForm(false)}>Cancel</button>
+          </div>
         </form>
-      </div>
+      )}
 
-      <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <Award size={16} /> My Certifications ({certs.length})
-      </div>
+      {error && !showForm && <div className="alert alert-error">{error}</div>}
+
       {loading ? (
-        <div className="loading-text">Loading...</div>
-      ) : certs.length === 0 ? (
-        <div className="info-card" style={{ color: '#64748b' }}>No certifications added yet.</div>
+        <div className="loading-text">Loading certifications...</div>
+      ) : sorted.length === 0 ? (
+        <div className="info-card" style={{ textAlign: 'center', padding: '32px 20px', color: '#94a3b8' }}>
+          <Award size={26} style={{ marginBottom: 10, opacity: 0.6 }} />
+          <div style={{ fontSize: 13.5 }}>No certifications on file yet — add one to start tracking renewals.</div>
+        </div>
       ) : (
-        certs.map((c) => (
-          <div key={c.id} className="info-card" style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>
-                  {c.name}
-                  {c.expired && <span className="role-badge" style={{ background: '#fff1f2', color: '#e11d48', marginLeft: 8 }}>Expired</span>}
+        sorted.map((cert) => {
+          const status = getCertificationStatus(cert);
+          return (
+            <div
+              key={cert.id}
+              className="info-card"
+              style={{
+                marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                gap: 12, flexWrap: 'wrap', borderLeft: `3px solid ${status.color}`,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontWeight: 600, fontSize: 14.5 }}>{cert.name}</span>
+                  <span className="status-pill" style={{ background: status.bg, color: status.color, fontSize: 11 }}>
+                    {status.label}
+                  </span>
                 </div>
-                {c.issuingBody && <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>{c.issuingBody}</div>}
-                <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
-                  {c.issueDate ? `Issued ${c.issueDate}` : ''}{c.expiryDate ? ` · Expires ${c.expiryDate}` : ''}
+                <div style={{ fontSize: 12.5, color: '#64748b', marginTop: 3 }}>
+                  {cert.issuingBody && `${cert.issuingBody} · `}
+                  {cert.issueDate && `Issued ${new Date(cert.issueDate).toLocaleDateString()}`}
+                  {cert.expiryDate && ` · Expires ${new Date(cert.expiryDate).toLocaleDateString()}`}
+                  {!cert.expiryDate && !cert.issueDate && 'No dates on file'}
                 </div>
-                {c.credentialUrl && (
-                  <a href={c.credentialUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#0d9488', display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                {cert.credentialUrl && (
+                  <a href={cert.credentialUrl} target="_blank" rel="noopener noreferrer"
+                     style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, color: '#2563eb', marginTop: 6, textDecoration: 'none' }}>
                     View credential <ExternalLink size={12} />
                   </a>
                 )}
               </div>
-              <button onClick={() => handleDelete(c.id)} title="Delete" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e11d48' }}>
-                <Trash2 size={16} />
+              <button onClick={() => handleDelete(cert.id)} title="Remove" className="btn-sm" style={{ padding: '6px 8px', flexShrink: 0 }}>
+                <Trash2 size={14} />
               </button>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
     </Layout>
   );

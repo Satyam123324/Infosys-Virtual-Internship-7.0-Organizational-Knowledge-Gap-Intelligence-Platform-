@@ -554,7 +554,7 @@ h1, h2, h3, .display, .stat-value {
   margin-bottom: 6px;
   color: var(--slate-900);
 }
-.form-group input, .form-group select {
+.form-group input, .form-group select, .form-group textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--slate-300);
@@ -565,7 +565,7 @@ h1, h2, h3, .display, .stat-value {
   font-family: var(--font-body);
   background: var(--surface);
 }
-.form-group input:focus, .form-group select:focus {
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
   border-color: var(--teal-500);
   box-shadow: 0 0 0 3px rgba(13,148,136,0.14);
 }
