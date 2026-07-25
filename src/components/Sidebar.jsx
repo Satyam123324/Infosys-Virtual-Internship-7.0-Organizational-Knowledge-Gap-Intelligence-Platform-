@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers, Users, KeyRound, UserCircle } from 'lucide-react';
+import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers, Users, KeyRound, UserCircle, UsersRound, GraduationCap, BookOpen, Library, Star, Award, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
@@ -50,13 +50,39 @@ export default function Sidebar() {
         <NavLink to="/assessment" className={linkClass}>
           <ClipboardCheck size={17} /> Assessment Test
         </NavLink>
+        <NavLink to="/peer-assessment" className={linkClass}>
+          <UsersRound size={17} /> Peer Assessment
+        </NavLink>
+        <NavLink to="/skill-review" className={linkClass}>
+          <Star size={17} /> Skills Review
+        </NavLink>
+        <NavLink to="/certifications" className={linkClass}>
+          <Award size={17} /> Certifications
+        </NavLink>
+        <NavLink to="/notifications" className={linkClass}>
+          <Bell size={17} /> Notification Center
+        </NavLink>
         <NavLink to="/gap-analysis" className={linkClass}>
           <Radar size={17} /> My Gap Analysis
+        </NavLink>
+        <NavLink to="/mentorship" className={linkClass}>
+          <GraduationCap size={17} /> Mentorship
+        </NavLink>
+        <NavLink to="/training" className={linkClass}>
+          <BookOpen size={17} /> Training & Learning
+        </NavLink>
+        <NavLink to="/knowledge-articles" className={linkClass}>
+          <Library size={17} /> Knowledge Library
         </NavLink>
 
         {(canSeeOrgGaps || canManageFrameworks || canSeeAllProfiles || isAdmin) && (
           <>
             <div className="nav-group-label">Administration</div>
+            {isAdmin && (
+              <NavLink to="/admin/dashboard" className={linkClass}>
+                <LayoutDashboard size={17} /> Admin Dashboard
+              </NavLink>
+            )}
             {canSeeAllProfiles && (
               <NavLink to="/admin/employee-profiles" className={linkClass}>
                 <Users size={17} /> Manage Employees

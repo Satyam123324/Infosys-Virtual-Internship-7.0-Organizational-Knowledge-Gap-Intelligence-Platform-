@@ -13,8 +13,16 @@ import SkillInventory from './pages/SkillInventory';
 import AssessmentTest from './pages/AssessmentTest';
 import GapAnalysis from './pages/GapAnalysis';
 import AdminGapDashboard from './pages/AdminGapDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import SkillsReview from './pages/SkillsReview';
+import Certifications from './pages/Certifications';
+import NotificationCenter from './pages/NotificationCenter';
 import CompetencyFrameworks from './pages/CompetencyFrameworks';
 import AdminEmployeeProfiles from './pages/AdminEmployeeProfiles';
+import PeerAssessment from './pages/PeerAssessment';
+import Mentorship from './pages/Mentorship';
+import TrainingEnrollment from './pages/TrainingEnrollment';
+import KnowledgeArticles from './pages/KnowledgeArticles';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -57,6 +65,38 @@ export default function App() {
             }
           />
           <Route
+            path="/peer-assessment"
+            element={
+              <ProtectedRoute>
+                <PeerAssessment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/skill-review"
+            element={
+              <ProtectedRoute>
+                <SkillsReview />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/certifications"
+            element={
+              <ProtectedRoute>
+                <Certifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationCenter />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/skills"
             element={
               <ProtectedRoute>
@@ -77,6 +117,38 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <GapAnalysis />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mentorship"
+            element={
+              <ProtectedRoute>
+                <Mentorship />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/training"
+            element={
+              <ProtectedRoute>
+                <TrainingEnrollment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/knowledge-articles"
+            element={
+              <ProtectedRoute>
+                <KnowledgeArticles />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['SYSTEM_ADMINISTRATOR']}>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
