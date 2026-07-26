@@ -1,5 +1,6 @@
 package com.infosys.knowledgegap.service.impl;
 
+import com.infosys.knowledgegap.dto.LearningMilestoneResponse;
 import com.infosys.knowledgegap.dto.TeamMemberLearningProgressResponse;
 import com.infosys.knowledgegap.dto.TrainingEnrollmentRequest;
 import com.infosys.knowledgegap.dto.TrainingEnrollmentResponse;
@@ -52,6 +53,21 @@ public class TrainingEnrollmentServiceImpl implements TrainingEnrollmentService 
         User user = getUser(email);
         return trainingEnrollmentRepository.findByUserIdOrderByDeadlineAsc(user.getId()).stream()
                 .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LearningMilestoneResponse> getMyMilestones(String email) {
+        User user = getUser(email);
+        return learningMilestoneRepository.findByUserIdOrderByAchievedAtDesc(user.getId()).stream()
+                .map(m -> LearningMilestoneResponse.builder()
+                        .id(m.getId())
+                        .type(m.getType())
+                        .title(m.getTitle())
+                        .description(m.getDescription())
+                        .badgeIcon(m.getBadgeIcon())
+                        .achievedAt(m.getAchievedAt())
+                        .build())
                 .collect(Collectors.toList());
     }
 

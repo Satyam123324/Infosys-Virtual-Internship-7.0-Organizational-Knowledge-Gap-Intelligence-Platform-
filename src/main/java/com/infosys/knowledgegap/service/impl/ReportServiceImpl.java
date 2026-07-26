@@ -4,8 +4,10 @@ import com.infosys.knowledgegap.dto.DepartmentGapSummary;
 import com.infosys.knowledgegap.dto.EmployeeGapReport;
 import com.infosys.knowledgegap.dto.ResourceLink;
 import com.infosys.knowledgegap.dto.SkillGapDetail;
+import com.infosys.knowledgegap.dto.TeamMemberLearningProgressResponse;
 import com.infosys.knowledgegap.service.GapAnalysisService;
 import com.infosys.knowledgegap.service.ReportService;
+import com.infosys.knowledgegap.service.TrainingEnrollmentService;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
@@ -24,7 +26,11 @@ import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Builds PDF (OpenPDF) and Excel (Apache POI) exports from the Gap Analysis engine.
@@ -34,6 +40,7 @@ import java.util.List;
 public class ReportServiceImpl implements ReportService {
 
     private final GapAnalysisService gapAnalysisService;
+    private final TrainingEnrollmentService trainingEnrollmentService;
 
     // ---- brand palette (matches the app) ----
     private static final Color INK   = new Color(14, 23, 38);
@@ -276,6 +283,171 @@ public class ReportServiceImpl implements ReportService {
             return baos.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("Failed to build workforce Excel: " + e.getMessage(), e);
+        }
+    }
+
+    // =========================================================================
+    // Excel — training effectiveness & learning ROI (Module 11)
+    // =========================================================================
+
+    @Override
+    public byte[] trainingEffectivenessExcel() {
+        List<TeamMemberLearningProgressResponse> rows = trainingEnrollmentService.getTeamProgress();
+        try (Workbook wb = new XSSFWorkbook(); ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            Sheet sheet = wb.createSheet("Training Effectiveness");
+            CellStyle header = headerStyle(wb);
+            CellStyle pct = pctStyle(wb);
+
+            String[] cols = {"Employee", "Department", "Role", "Enrollments", "Completed",
+                    "Overdue", "Completion Rate", "Avg Progress", "Milestones Earned"};
+            Row hr = sheet.createRow(0);
+            for (int i = 0; i < cols.length; i++) {
+                Cell c = hr.createCell(i);
+                c.setCellValue(cols[i]);
+                c.setCellStyle(header);
+            }
+
+            int r = 1;
+            int totalEnrollments = 0;
+            int totalCompleted = 0;
+            int totalMilestones = 0;
+            for (TeamMemberLearningProgressResponse m : rows) {
+                Row row = sheet.createRow(r++);
+                row.createCell(0).setCellValue(nz(m.getFullName()));
+                row.createCell(1).setCellValue(nz(m.getDepartment()));
+                row.createCell(2).setCellValue(nz(m.getDesignation()));
+                row.createCell(3).setCellValue(m.getTotalEnrollments());
+                row.createCell(4).setCellValue(m.getCompletedCount());
+                row.createCell(5).setCellValue(m.getOverdueCount());
+
+                double completionRate = m.getTotalEnrollments() > 0
+                        ? (double) m.getCompletedCount() / m.getTotalEnrollments() : 0;
+                Cell rate = row.createCell(6);
+                rate.setCellValue(completionRate);
+                rate.setCellStyle(pct);
+
+                Cell prog = row.createCell(7);
+                prog.setCellValue(m.getAvgProgressPercent() / 100.0);
+                prog.setCellStyle(pct);
+
+                row.createCell(8).setCellValue(m.getMilestonesEarned());
+
+                totalEnrollments += m.getTotalEnrollments();
+                totalCompleted += m.getCompletedCount();
+                totalMilestones += m.getMilestonesEarned();
+            }
+
+            // Org-level summary (learning ROI snapshot)
+            r++;
+            Row summaryHeader = sheet.createRow(r++);
+            Cell sh = summaryHeader.createCell(0);
+            sh.setCellValue("Organization Summary");
+            sh.setCellStyle(header);
+
+            summaryRow(sheet, r++, "Total enrollments", String.valueOf(totalEnrollments));
+            summaryRow(sheet, r++, "Total completed", String.valueOf(totalCompleted));
+            summaryRow(sheet, r++, "Total milestones earned", String.valueOf(totalMilestones));
+
+            Row rateRow = sheet.createRow(r++);
+            rateRow.createCell(0).setCellValue("Org completion rate");
+            Cell orgRate = rateRow.createCell(1);
+            orgRate.setCellValue(totalEnrollments > 0 ? (double) totalCompleted / totalEnrollments : 0);
+            orgRate.setCellStyle(pct);
+
+            for (int i = 0; i < cols.length; i++) sheet.autoSizeColumn(i);
+            wb.write(baos);
+            return baos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build training effectiveness Excel: " + e.getMessage(), e);
+        }
+    }
+
+    private void summaryRow(Sheet sheet, int rowIdx, String label, String value) {
+        Row row = sheet.createRow(rowIdx);
+        row.createCell(0).setCellValue(label);
+        row.createCell(1).setCellValue(value);
+    }
+
+    // =========================================================================
+    // Excel — strategic workforce planning (Module 11)
+    // =========================================================================
+
+    @Override
+    public byte[] strategicWorkforcePlanExcel() {
+        List<DepartmentGapSummary> summaries = gapAnalysisService.getDepartmentGapSummaries();
+        List<EmployeeGapReport> reports = gapAnalysisService.getAllGapReports();
+        try (Workbook wb = new XSSFWorkbook(); ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            CellStyle header = headerStyle(wb);
+            CellStyle pct = pctStyle(wb);
+
+            // Sheet 1 — departments ranked by investment priority
+            Sheet dept = wb.createSheet("Department Priorities");
+            String[] cols = {"Priority", "Department", "Employees", "Avg Readiness", "Total Gaps", "Critical Gaps"};
+            Row hr = dept.createRow(0);
+            for (int i = 0; i < cols.length; i++) {
+                Cell c = hr.createCell(i);
+                c.setCellValue(cols[i]);
+                c.setCellStyle(header);
+            }
+
+            List<DepartmentGapSummary> ranked = new ArrayList<>(summaries);
+            ranked.sort(Comparator.comparingInt(DepartmentGapSummary::getCriticalGaps).reversed()
+                    .thenComparingDouble(DepartmentGapSummary::getAvgReadinessPercent));
+
+            int r = 1;
+            for (DepartmentGapSummary s : ranked) {
+                String priority = (s.getAvgReadinessPercent() < 50 || s.getCriticalGaps() >= 5) ? "HIGH"
+                        : s.getAvgReadinessPercent() < 75 ? "MEDIUM" : "LOW";
+                Row row = dept.createRow(r++);
+                row.createCell(0).setCellValue(priority);
+                row.createCell(1).setCellValue(nz(s.getDepartmentName()));
+                row.createCell(2).setCellValue(s.getEmployeeCount());
+                Cell rd = row.createCell(3);
+                rd.setCellValue(s.getAvgReadinessPercent() / 100.0);
+                rd.setCellStyle(pct);
+                row.createCell(4).setCellValue(s.getTotalGaps());
+                row.createCell(5).setCellValue(s.getCriticalGaps());
+            }
+            for (int i = 0; i < cols.length; i++) dept.autoSizeColumn(i);
+
+            // Sheet 2 — top org-wide skill gaps (where to invest training)
+            Sheet skillSheet = wb.createSheet("Top Skill Gaps");
+            String[] scols = {"Skill", "People With Gap", "Total Gap Size", "Critical Count"};
+            Row shr = skillSheet.createRow(0);
+            for (int i = 0; i < scols.length; i++) {
+                Cell c = shr.createCell(i);
+                c.setCellValue(scols[i]);
+                c.setCellStyle(header);
+            }
+
+            Map<String, int[]> agg = new HashMap<>(); // skill -> [peopleWithGap, totalGapSize, criticalCount]
+            for (EmployeeGapReport rep : reports) {
+                if (rep.getGaps() == null) continue;
+                for (SkillGapDetail g : rep.getGaps()) {
+                    if (g.getGapSize() <= 0) continue;
+                    int[] a = agg.computeIfAbsent(g.getSkillName(), k -> new int[3]);
+                    a[0] += 1;
+                    a[1] += g.getGapSize();
+                    if ("CRITICAL".equals(g.getSeverity())) a[2] += 1;
+                }
+            }
+            List<Map.Entry<String, int[]>> entries = new ArrayList<>(agg.entrySet());
+            entries.sort((a, b) -> Integer.compare(b.getValue()[1], a.getValue()[1]));
+
+            int sr = 1;
+            for (Map.Entry<String, int[]> e : entries) {
+                Row row = skillSheet.createRow(sr++);
+                row.createCell(0).setCellValue(e.getKey());
+                row.createCell(1).setCellValue(e.getValue()[0]);
+                row.createCell(2).setCellValue(e.getValue()[1]);
+                row.createCell(3).setCellValue(e.getValue()[2]);
+            }
+            for (int i = 0; i < scols.length; i++) skillSheet.autoSizeColumn(i);
+
+            wb.write(baos);
+            return baos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build strategic workforce plan Excel: " + e.getMessage(), e);
         }
     }
 

@@ -1,0 +1,44 @@
+# Runs the whole platform together: PostgreSQL + Spring Boot backend + React frontend.
+#
+#   Run from THIS (backend) folder:   docker compose up --build
+#   Then open:  http://localhost:5173   (backend API at http://localhost:8080)
+#
+# Requires the frontend repo to sit beside this one at ../knowledge-gap-frontend.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: knowledge_gap_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/knowledge_gap_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ../knowledge-gap-frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  pgdata:

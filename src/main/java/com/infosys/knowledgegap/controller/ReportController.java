@@ -59,6 +59,22 @@ public class ReportController {
         return download(xlsx, XLSX, "workforce-gap-report-" + LocalDate.now() + ".xlsx");
     }
 
+    @GetMapping("/training-effectiveness/excel")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMINISTRATOR','HR_SPECIALIST')")
+    @Operation(summary = "Download the training effectiveness & learning-ROI report as an Excel file")
+    public ResponseEntity<byte[]> trainingEffectivenessExcel() {
+        byte[] xlsx = reportService.trainingEffectivenessExcel();
+        return download(xlsx, XLSX, "training-effectiveness-" + LocalDate.now() + ".xlsx");
+    }
+
+    @GetMapping("/strategic-workforce-plan/excel")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMINISTRATOR','HR_SPECIALIST')")
+    @Operation(summary = "Download the strategic workforce planning report as an Excel file")
+    public ResponseEntity<byte[]> strategicWorkforcePlanExcel() {
+        byte[] xlsx = reportService.strategicWorkforcePlanExcel();
+        return download(xlsx, XLSX, "strategic-workforce-plan-" + LocalDate.now() + ".xlsx");
+    }
+
     private ResponseEntity<byte[]> download(byte[] body, String contentType, String filename) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")

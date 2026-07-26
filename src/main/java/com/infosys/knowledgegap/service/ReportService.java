@@ -18,4 +18,10 @@ public interface ReportService {
 
     /** Workforce skill-gap report (Excel) — every employee plus a per-gap breakdown sheet. */
     byte[] workforceGapExcel();
+
+    /** Training effectiveness & learning-ROI report (Excel) — completion rates, progress, milestones. */
+    byte[] trainingEffectivenessExcel();
+
+    /** Strategic workforce planning report (Excel) — department risk ranking + top org-wide skill gaps. */
+    byte[] strategicWorkforcePlanExcel();
 }

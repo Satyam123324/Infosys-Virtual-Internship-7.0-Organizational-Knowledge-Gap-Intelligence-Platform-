@@ -1,6 +1,7 @@
 package com.infosys.knowledgegap.controller;
 
 import com.infosys.knowledgegap.dto.ApiResponse;
+import com.infosys.knowledgegap.dto.LearningMilestoneResponse;
 import com.infosys.knowledgegap.dto.TeamMemberLearningProgressResponse;
 import com.infosys.knowledgegap.dto.TrainingEnrollmentRequest;
 import com.infosys.knowledgegap.dto.TrainingEnrollmentResponse;
@@ -47,6 +48,14 @@ public class TrainingEnrollmentController {
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(ApiResponse.success("Enrollments fetched",
                 trainingEnrollmentService.getMyEnrollments(userDetails.getUsername())));
+    }
+
+    @GetMapping("/milestones/me")
+    @Operation(summary = "Get my learning milestones (achievements over time) for velocity analytics")
+    public ResponseEntity<ApiResponse<List<LearningMilestoneResponse>>> getMyMilestones(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success("Milestones fetched",
+                trainingEnrollmentService.getMyMilestones(userDetails.getUsername())));
     }
 
     @PatchMapping("/{id}/progress")
