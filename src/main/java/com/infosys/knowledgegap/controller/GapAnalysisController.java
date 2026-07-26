@@ -3,6 +3,8 @@ package com.infosys.knowledgegap.controller;
 import com.infosys.knowledgegap.dto.ApiResponse;
 import com.infosys.knowledgegap.dto.DepartmentGapSummary;
 import com.infosys.knowledgegap.dto.EmployeeGapReport;
+import com.infosys.knowledgegap.entity.GapSnapshot;
+import com.infosys.knowledgegap.repository.GapSnapshotRepository;
 import com.infosys.knowledgegap.service.GapAnalysisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +24,7 @@ import java.util.List;
 public class GapAnalysisController {
 
     private final GapAnalysisService gapAnalysisService;
+    private final GapSnapshotRepository gapSnapshotRepository;
 
     @GetMapping("/me")
     @Operation(summary = "Get my personal gap report against my current role's requirements")
@@ -61,5 +64,13 @@ public class GapAnalysisController {
     public ResponseEntity<ApiResponse<List<DepartmentGapSummary>>> getDepartmentSummaries() {
         return ResponseEntity.ok(ApiResponse.success("Department gap summaries generated",
                 gapAnalysisService.getDepartmentGapSummaries()));
+    }
+
+    @GetMapping("/trends")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMINISTRATOR','HR_SPECIALIST')")
+    @Operation(summary = "Org-wide gap trend over time (historical daily snapshots)")
+    public ResponseEntity<ApiResponse<List<GapSnapshot>>> getGapTrends() {
+        return ResponseEntity.ok(ApiResponse.success("Gap trends",
+                gapSnapshotRepository.findAllByOrderBySnapshotDateAsc()));
     }
 }

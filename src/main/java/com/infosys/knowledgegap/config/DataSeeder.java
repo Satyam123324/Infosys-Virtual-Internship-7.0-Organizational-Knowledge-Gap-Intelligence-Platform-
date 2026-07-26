@@ -9,6 +9,7 @@ import com.infosys.knowledgegap.entity.Skill;
 import com.infosys.knowledgegap.entity.SkillCategory;
 import com.infosys.knowledgegap.entity.EmployeeProfile;
 import com.infosys.knowledgegap.entity.EmployeeSkill;
+import com.infosys.knowledgegap.entity.GapSnapshot;
 import com.infosys.knowledgegap.entity.User;
 import com.infosys.knowledgegap.enums.ProficiencyLevel;
 import com.infosys.knowledgegap.enums.RoleType;
@@ -21,11 +22,13 @@ import com.infosys.knowledgegap.repository.SkillCategoryRepository;
 import com.infosys.knowledgegap.repository.SkillRepository;
 import com.infosys.knowledgegap.repository.UserRepository;
 import com.infosys.knowledgegap.repository.EmployeeProfileRepository;
+import com.infosys.knowledgegap.repository.GapSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +46,7 @@ public class DataSeeder implements CommandLineRunner {
     private final CompetencyRequirementRepository requirementRepository;
     private final UserRepository userRepository;
     private final EmployeeProfileRepository employeeProfileRepository;
+    private final GapSnapshotRepository gapSnapshotRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -54,6 +58,29 @@ public class DataSeeder implements CommandLineRunner {
         seedCompetencyFrameworks();
         seedAdminAccount();
         seedDemoEmployees();
+        seedGapTrends();
+    }
+
+    // Backdated weekly org-wide gap snapshots so the trend-over-time chart
+    // (Module 4) has history to show immediately. Idempotent. The daily
+    // GapSnapshotScheduler appends real points going forward.
+    private void seedGapTrends() {
+        if (gapSnapshotRepository.count() > 0) return;
+
+        double[] readiness  = {52, 55, 58, 61, 65, 68, 71, 74};
+        int[]    totalGaps  = {120, 112, 104, 95, 88, 80, 73, 66};
+        int[]    critical   = {28, 25, 22, 19, 16, 13, 11, 9};
+
+        LocalDate today = LocalDate.now();
+        for (int i = 0; i < readiness.length; i++) {
+            gapSnapshotRepository.save(GapSnapshot.builder()
+                    .snapshotDate(today.minusWeeks(readiness.length - 1 - i))
+                    .avgReadinessPercent(readiness[i])
+                    .totalGaps(totalGaps[i])
+                    .criticalGaps(critical[i])
+                    .employeeCount(6)
+                    .build());
+        }
     }
 
     // A ready-to-use System Administrator so the Admin area is reachable out of
