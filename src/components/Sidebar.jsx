@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers, Users, KeyRound, UserCircle, Bell, GraduationCap, Star, Award, BookOpen, Notebook } from 'lucide-react';
+import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers, Users, KeyRound, UserCircle, Bell, GraduationCap, Star, Award, BookOpen, Notebook, History, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
@@ -50,6 +50,9 @@ export default function Sidebar() {
         <NavLink to="/assessment" className={linkClass}>
           <ClipboardCheck size={17} /> Assessment Test
         </NavLink>
+        <NavLink to="/assessment-history" className={linkClass}>
+          <History size={17} /> Assessment History
+        </NavLink>
         <NavLink to="/gap-analysis" className={linkClass}>
           <Radar size={17} /> My Gap Analysis
         </NavLink>
@@ -61,6 +64,9 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/training" className={linkClass}>
           <Notebook size={17} /> Training & Learning
+        </NavLink>
+        <NavLink to="/learning-analytics" className={linkClass}>
+          <TrendingUp size={17} /> Learning Analytics
         </NavLink>
         <NavLink to="/skill-reviews" className={linkClass}>
           <Star size={17} /> Skill Reviews

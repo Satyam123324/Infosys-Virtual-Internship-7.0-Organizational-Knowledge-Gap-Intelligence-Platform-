@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import AdminConsole from './pages/AdminConsole';
 import SkillInventory from './pages/SkillInventory';
 import AssessmentTest from './pages/AssessmentTest';
+import AssessmentHistory from './pages/AssessmentHistory';
 import GapAnalysis from './pages/GapAnalysis';
 import AdminGapDashboard from './pages/AdminGapDashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -21,6 +22,7 @@ import MentorshipDirectory from './pages/MentorshipDirectory';
 import SkillReviewForms from './pages/SkillReviewForms';
 import Certifications from './pages/Certifications';
 import TrainingLearning from './pages/TrainingLearning';
+import LearningAnalytics from './pages/LearningAnalytics';
 import KnowledgeLibrary from './pages/KnowledgeLibrary';
 import ArticleView from './pages/ArticleView';
 import ArticleEditor from './pages/ArticleEditor';
@@ -82,6 +84,14 @@ export default function App() {
             }
           />
           <Route
+            path="/assessment-history"
+            element={
+              <ProtectedRoute>
+                <AssessmentHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/gap-analysis"
             element={
               <ProtectedRoute>
@@ -126,6 +136,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <TrainingLearning />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/learning-analytics"
+            element={
+              <ProtectedRoute>
+                <LearningAnalytics />
               </ProtectedRoute>
             }
           />

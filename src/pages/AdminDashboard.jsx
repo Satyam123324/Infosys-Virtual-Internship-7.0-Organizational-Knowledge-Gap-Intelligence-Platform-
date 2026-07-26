@@ -247,6 +247,22 @@ export default function AdminDashboard() {
                 <FileSpreadsheet size={16} />
                 {downloading === 'dept' ? 'Generating…' : 'Department Summary (Excel)'}
               </button>
+              <button
+                onClick={() => runDownload('training', reportsApi.trainingEffectivenessExcel)}
+                disabled={downloading === 'training'}
+                style={reportBtnStyle}
+              >
+                <FileSpreadsheet size={16} />
+                {downloading === 'training' ? 'Generating…' : 'Training Effectiveness (Excel)'}
+              </button>
+              <button
+                onClick={() => runDownload('strategic', reportsApi.strategicWorkforcePlanExcel)}
+                disabled={downloading === 'strategic'}
+                style={reportBtnStyle}
+              >
+                <FileSpreadsheet size={16} />
+                {downloading === 'strategic' ? 'Generating…' : 'Strategic Workforce Plan (Excel)'}
+              </button>
             </div>
           </div>
 

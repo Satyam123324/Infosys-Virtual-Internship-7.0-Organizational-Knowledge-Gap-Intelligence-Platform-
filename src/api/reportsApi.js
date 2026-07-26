@@ -27,4 +27,8 @@ export const reportsApi = {
   departmentSummaryExcel: () =>
     download('/reports/gap/department-summary/excel', 'department-gap-summary.xlsx'),
   workforceExcel: () => download('/reports/gap/workforce/excel', 'workforce-gap-report.xlsx'),
+  trainingEffectivenessExcel: () =>
+    download('/reports/training-effectiveness/excel', 'training-effectiveness.xlsx'),
+  strategicWorkforcePlanExcel: () =>
+    download('/reports/strategic-workforce-plan/excel', 'strategic-workforce-plan.xlsx'),
 };
