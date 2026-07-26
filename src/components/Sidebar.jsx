@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers, Users, KeyRound, UserCircle, Bell, GraduationCap, Star, Award, BookOpen } from 'lucide-react';
+import { LayoutDashboard, ListChecks, ClipboardCheck, ShieldCheck, LogOut, Brain, Radar, Layers, Users, KeyRound, UserCircle, Bell, GraduationCap, Star, Award, BookOpen, Notebook } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
@@ -58,6 +58,9 @@ export default function Sidebar() {
         </NavLink>
         <NavLink to="/mentorship" className={linkClass}>
           <GraduationCap size={17} /> Mentorship
+        </NavLink>
+        <NavLink to="/training" className={linkClass}>
+          <Notebook size={17} /> Training & Learning
         </NavLink>
         <NavLink to="/skill-reviews" className={linkClass}>
           <Star size={17} /> Skill Reviews

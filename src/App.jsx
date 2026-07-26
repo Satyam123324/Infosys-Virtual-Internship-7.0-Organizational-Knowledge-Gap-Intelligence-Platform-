@@ -20,6 +20,7 @@ import NotificationCenter from './pages/NotificationCenter';
 import MentorshipDirectory from './pages/MentorshipDirectory';
 import SkillReviewForms from './pages/SkillReviewForms';
 import Certifications from './pages/Certifications';
+import TrainingLearning from './pages/TrainingLearning';
 import KnowledgeLibrary from './pages/KnowledgeLibrary';
 import ArticleView from './pages/ArticleView';
 import ArticleEditor from './pages/ArticleEditor';
@@ -117,6 +118,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Certifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/training"
+            element={
+              <ProtectedRoute>
+                <TrainingLearning />
               </ProtectedRoute>
             }
           />

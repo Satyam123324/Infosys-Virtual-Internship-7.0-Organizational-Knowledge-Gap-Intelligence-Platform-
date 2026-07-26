@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 import { AlertOctagon, Users, TrendingDown, Target } from 'lucide-react';
 import Layout from '../components/Layout';
+import GapHeatmap from '../components/GapHeatmap';
 import { gapAnalysisApi } from '../api/gapAnalysisApi';
 
 const SEVERITY_COLOR = { CRITICAL: '#e11d48', MODERATE: '#f59e0b', MINOR: '#2563eb' };
@@ -9,18 +10,21 @@ const SEVERITY_COLOR = { CRITICAL: '#e11d48', MODERATE: '#f59e0b', MINOR: '#2563
 export default function AdminGapDashboard() {
   const [summaries, setSummaries] = useState([]);
   const [allReports, setAllReports] = useState([]);
+  const [trends, setTrends] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     (async () => {
       try {
-        const [summaryRes, reportsRes] = await Promise.all([
+        const [summaryRes, reportsRes, trendsRes] = await Promise.all([
           gapAnalysisApi.getDepartmentSummaries(),
           gapAnalysisApi.getAllReports(),
+          gapAnalysisApi.getTrends().catch(() => ({ data: { data: [] } })),
         ]);
         setSummaries(summaryRes.data.data);
         setAllReports(reportsRes.data.data);
+        setTrends(trendsRes.data.data || []);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load organization gap analysis');
       } finally {
@@ -39,6 +43,12 @@ export default function AdminGapDashboard() {
   const readinessChartData = summaries
     .filter((s) => s.employeeCount > 0)
     .map((s) => ({ name: s.departmentName, readiness: s.avgReadinessPercent }));
+
+  const trendChartData = trends.map((t) => ({
+    date: new Date(t.snapshotDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+    readiness: Math.round(t.avgReadinessPercent),
+    critical: t.criticalGaps,
+  }));
 
   return (
     <Layout title="Organization Gap Analysis" subtitle="Live comparison of employee skills against role requirements, org-wide">
@@ -95,6 +105,37 @@ export default function AdminGapDashboard() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+          </div>
+
+          {trendChartData.length > 0 && (
+            <>
+              <div className="section-title">Gap Trend Over Time</div>
+              <div className="chart-sub" style={{ marginBottom: 12 }}>
+                Org-wide role readiness rising as critical gaps close, week over week.
+              </div>
+              <div className="chart-card" style={{ marginBottom: 28 }}>
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={trendChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <YAxis yAxisId="left" domain={[0, 100]} tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <Tooltip />
+                    <Legend />
+                    <Line yAxisId="left" type="monotone" dataKey="readiness" name="Avg Readiness %" stroke="#0d9488" strokeWidth={2} dot={{ r: 3 }} />
+                    <Line yAxisId="right" type="monotone" dataKey="critical" name="Critical Gaps" stroke="#e11d48" strokeWidth={2} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          )}
+
+          <div className="section-title">Skill Gap Heatmap</div>
+          <div className="chart-sub" style={{ marginBottom: 12 }}>
+            Average skill gap by department — darker red means a wider gap against role requirements.
+          </div>
+          <div style={{ marginBottom: 28 }}>
+            <GapHeatmap reports={allReports} />
           </div>
 
           <div className="section-title">Employee Gap Details</div>

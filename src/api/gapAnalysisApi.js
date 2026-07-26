@@ -6,4 +6,5 @@ export const gapAnalysisApi = {
   getReportsForDepartment: (deptId) => api.get(`/gap-analysis/department/${deptId}`),
   getAllReports: () => api.get('/gap-analysis/all'),
   getDepartmentSummaries: () => api.get('/gap-analysis/department-summary'),
+  getTrends: () => api.get('/gap-analysis/trends'),
 };
