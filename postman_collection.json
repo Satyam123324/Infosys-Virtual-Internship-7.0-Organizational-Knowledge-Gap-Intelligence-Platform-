@@ -1,0 +1,121 @@
+{
+  "info": {
+    "name": "Knowledge Gap Intelligence Platform API",
+    "description": "API test collection. Run 'Login' first — it captures the JWT into {{accessToken}} for the other requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api/v1" },
+    { "key": "accessToken", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Test User\",\n  \"email\": \"test@corp.com\",\n  \"password\": \"Test@1234\"\n}" }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@demo.local\",\n  \"password\": \"Admin@1234\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile & Skills",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        },
+        {
+          "name": "Get My Skills",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/employee-profile/me/skills", "host": ["{{baseUrl}}"], "path": ["employee-profile", "me", "skills"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gap Analysis",
+      "item": [
+        {
+          "name": "My Gap Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/gap-analysis/me", "host": ["{{baseUrl}}"], "path": ["gap-analysis", "me"] }
+          }
+        },
+        {
+          "name": "Department Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/gap-analysis/department-summary", "host": ["{{baseUrl}}"], "path": ["gap-analysis", "department-summary"] }
+          }
+        },
+        {
+          "name": "Gap Trends",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/gap-analysis/trends", "host": ["{{baseUrl}}"], "path": ["gap-analysis", "trends"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Workforce Gap (Excel)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/reports/gap/workforce/excel", "host": ["{{baseUrl}}"], "path": ["reports", "gap", "workforce", "excel"] }
+          }
+        },
+        {
+          "name": "Training Effectiveness (Excel)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/reports/training-effectiveness/excel", "host": ["{{baseUrl}}"], "path": ["reports", "training-effectiveness", "excel"] }
+          }
+        }
+      ]
+    }
+  ]
+}
