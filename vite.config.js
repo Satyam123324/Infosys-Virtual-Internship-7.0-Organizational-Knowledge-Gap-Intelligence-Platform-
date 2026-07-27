@@ -9,4 +9,9 @@ export default defineConfig({
     // silently drift to 5174/5175 when 5173 is taken — fail loudly instead.
     strictPort: true,
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+  },
 })
