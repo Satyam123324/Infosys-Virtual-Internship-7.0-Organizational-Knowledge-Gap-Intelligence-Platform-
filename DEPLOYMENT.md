@@ -41,10 +41,11 @@ The backend reads its database URL from `SPRING_DATASOURCE_URL` (set to `jdbc:po
 
 ## Optional integrations
 Email (OTP), Google/GitHub OAuth, and the AI recommendation engine work once their
-credentials are provided. Add them as environment variables under the `backend`
-service in `docker-compose.yml` (e.g. `MAIL_USERNAME`, `MAIL_PASSWORD`,
+credentials are provided. The `backend` service in `docker-compose.yml` loads them
+from the `.env` file (`env_file: - .env`), so `MAIL_USERNAME`, `MAIL_PASSWORD`,
 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`,
-`GEMINI_API_KEY`). They are optional — the app boots and runs without them.
+`GEMINI_API_KEY`, etc. are picked up automatically. They are optional — the app boots
+and runs without them.
 
 ## Building images individually
 ```bash

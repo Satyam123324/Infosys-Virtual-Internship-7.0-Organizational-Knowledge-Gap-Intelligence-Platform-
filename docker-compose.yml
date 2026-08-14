@@ -26,7 +26,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Loads OAuth (Google/GitHub), mail, JWT and other secrets from .env into the
+    # container. Without this the app only gets the DB vars below and sends Google
+    # the placeholder client-id -> "OAuth client was not found".
+    env_file:
+      - .env
     environment:
+      # These override anything in .env so the app points at the 'db' service
+      # (inside Docker the database host is 'db', not localhost).
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/knowledge_gap_db
       DB_USERNAME: postgres
       DB_PASSWORD: postgres

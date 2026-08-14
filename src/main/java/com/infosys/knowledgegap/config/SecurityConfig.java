@@ -98,7 +98,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // Allow any localhost port in dev — Vite may land on 5173/5174/5175… depending
         // on what's free, and a mismatch here silently blocks every frontend API call.
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:*", "http://127.0.0.1:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         // Module 11 (Reports & Export): the browser can only read this header if it is
