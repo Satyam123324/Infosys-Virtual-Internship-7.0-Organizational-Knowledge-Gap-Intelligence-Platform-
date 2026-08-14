@@ -4,11 +4,10 @@ The platform ships as three containers — **PostgreSQL**, the **Spring Boot bac
 
 ## Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
-- The two project folders sitting **side by side**:
+- This single repo, which contains both apps:
   ```
-  Desktop/
-  ├── knowledge-gap-platform/     (backend — run compose from here)
-  └── knowledge-gap-frontend/     (frontend)
+  knowledge-gap-platform/     (backend at the root — run compose from here)
+  └── frontend/               (React frontend)
   ```
 
 ## Run everything with one command
@@ -35,7 +34,7 @@ docker compose down -v
 |-----------|-----------------------------------|-------|-------|
 | `db`      | `postgres:16-alpine`              | 5432  | Data persists in the `pgdata` volume |
 | `backend` | built from `./Dockerfile`         | 8080  | Spring Boot jar on a JRE image; connects to `db` |
-| `frontend`| built from `../knowledge-gap-frontend/Dockerfile` | 5173→80 | Static bundle served by nginx |
+| `frontend`| built from `./frontend/Dockerfile` | 5173→80 | Static bundle served by nginx |
 
 The backend reads its database URL from `SPRING_DATASOURCE_URL` (set to `jdbc:postgresql://db:5432/...` in compose), so no code changes are needed between local and container runs.
 
@@ -49,11 +48,11 @@ and runs without them.
 
 ## Building images individually
 ```bash
-# Backend
-docker build -t knowledge-gap-backend ./knowledge-gap-platform
+# Backend (from the repo root)
+docker build -t knowledge-gap-backend .
 
 # Frontend
-docker build -t knowledge-gap-frontend ./knowledge-gap-frontend
+docker build -t knowledge-gap-frontend ./frontend
 ```
 
 ## Deploying to the cloud

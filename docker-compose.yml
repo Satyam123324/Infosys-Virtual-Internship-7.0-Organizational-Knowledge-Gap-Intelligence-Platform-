@@ -3,7 +3,7 @@
 #   Run from THIS (backend) folder:   docker compose up --build
 #   Then open:  http://localhost:5173   (backend API at http://localhost:8080)
 #
-# Requires the frontend repo to sit beside this one at ../knowledge-gap-frontend.
+# The frontend now lives in the ./frontend subfolder of this repo.
 services:
   db:
     image: postgres:16-alpine
@@ -41,7 +41,7 @@ services:
       - "8080:8080"
 
   frontend:
-    build: ../knowledge-gap-frontend
+    build: ./frontend
     depends_on:
       - backend
     ports:
