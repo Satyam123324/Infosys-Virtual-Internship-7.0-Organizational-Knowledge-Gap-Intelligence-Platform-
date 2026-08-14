@@ -2,8 +2,10 @@
 
 A full-stack platform that identifies expertise gaps across an organization, benchmarks employees against role-specific competency frameworks, and drives targeted learning through AI-generated recommendations, mentorship, and analytics dashboards.
 
-**Backend** (this repo): Java 17 · Spring Boot 3.3 · Spring Security · JWT + OAuth2 · Spring Data JPA · PostgreSQL
-**Frontend** ([knowledge-gap-frontend](https://github.com/Satyam123324/Infosys-Virtual-Internship-7.0-Organizational-Knowledge-Gap-Intelligence-Platform-Frontend)): React 18 · Vite · React Router · Axios · Recharts
+This is a single **monorepo** — the Spring Boot backend lives at the root and the React frontend in [`frontend/`](./frontend).
+
+**Backend:** Java 17 · Spring Boot 3.3 · Spring Security · JWT + OAuth2 · Spring Data JPA · PostgreSQL
+**Frontend:** React 18 · Vite · React Router · Axios · Recharts
 
 ---
 
@@ -43,7 +45,7 @@ A full-stack platform that identifies expertise gaps across an organization, ben
 ## Quick Start
 
 ### Option A — Docker (runs everything: DB + backend + frontend)
-Requires Docker Desktop, with the frontend repo cloned next to this one (`../knowledge-gap-frontend`).
+Requires Docker Desktop. The frontend already lives in `./frontend`, so no extra setup — run from the repo root:
 ```bash
 docker compose up --build
 ```
@@ -52,17 +54,25 @@ docker compose up --build
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for details and cloud steps.
 
-### Option B — Local dev (H2 in-memory, no PostgreSQL, no Docker)
+### Option B — Local dev (backend on H2 in-memory, no PostgreSQL, no Docker)
 ```bash
 ./run-dev.bat          # Windows — forces JDK 17 and the dev profile
 # or:
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-### Option C — Local production (PostgreSQL)
+### Option C — Local production (backend on PostgreSQL)
 1. Create a database `knowledge_gap_db`
 2. Copy `.env.example` → `.env` and fill in the values
 3. `./run-prod.bat` (or `mvn spring-boot:run`)
+
+### Frontend dev server
+When running the backend directly (Option B or C), start the frontend separately:
+```bash
+cd frontend
+npm install
+npm run dev            # http://localhost:5173
+```
 
 ---
 
@@ -100,23 +110,33 @@ Key endpoint groups (base path `/api/v1`): `auth`, `users`, `admin`, `employee-p
 ```bash
 mvn test
 ```
-Unit tests use **JUnit 5 + Mockito** (auth, skill-review authorization, training ownership, knowledge-article permissions). API testing is supported via the included Postman collection and Swagger UI. The frontend uses **React Testing Library** (Vitest) — see the frontend repo.
+Unit tests use **JUnit 5 + Mockito** (auth, skill-review authorization, training ownership, knowledge-article permissions). API testing is supported via the included Postman collection and Swagger UI. The frontend uses **React Testing Library** (Vitest):
+```bash
+cd frontend && npm test
+```
 
 ---
 
 ## Project Structure
 
 ```
-src/main/java/com/infosys/knowledgegap/
-├── config/         Security, OpenAPI, WebMvc, DataSeeder
-├── controller/     REST controllers (one per module)
-├── service/impl/   Business logic
-├── repository/     Spring Data JPA repositories
-├── entity/         JPA entities
-├── dto/            Request/response models
-├── enums/          Roles, proficiency levels, etc.
-├── security/       JWT filter, OAuth2 handlers, user details
-└── scheduler/      Daily notification + gap-snapshot jobs
+knowledge-gap-platform/           (repo root — Spring Boot backend)
+├── src/main/java/com/infosys/knowledgegap/
+│   ├── config/       Security, OpenAPI, WebMvc, DataSeeder
+│   ├── controller/   REST controllers (one per module)
+│   ├── service/impl/ Business logic
+│   ├── repository/   Spring Data JPA repositories
+│   ├── entity/       JPA entities
+│   ├── dto/          Request/response models
+│   ├── enums/        Roles, proficiency levels, etc.
+│   ├── security/     JWT filter, OAuth2 handlers, user details
+│   └── scheduler/    Daily notification + gap-snapshot jobs
+├── frontend/                     React + Vite single-page app
+│   └── src/          api/ · components/ · context/ · pages/ · utils/ · test/
+├── docker-compose.yml            DB + backend + frontend
+├── Dockerfile                    backend image
+├── run-dev.bat / run-prod.bat    Windows run scripts
+└── postman_collection.json       API collection
 ```
 
 ---
